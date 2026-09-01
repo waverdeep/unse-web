@@ -17,7 +17,7 @@ const M = 34 // 카드 바깥 여백
 const PAD = 26 // 본문 좌우 여백
 const BAND = 30
 
-const MYEONGJO = '"Nanum Myeongjo", AppleMyungjo, Batang, "Noto Serif KR", serif'
+const MYEONGJO = '"Nanum Myeongjo", "Bujeok Hanja", AppleMyungjo, Batang, "Noto Serif KR", serif'
 const PLEX = '"IBM Plex Sans KR", sans-serif'
 
 /** 한글은 어절 단위로만 끊는다. CSS 의 word-break: keep-all 과 같은 규칙 */
@@ -80,7 +80,12 @@ async function ensureFonts(nameFont: number): Promise<void> {
     `600 10px ${PLEX}`,
   ]
   try {
-    await Promise.all(wanted.map((f) => document.fonts.load(f, '運吉凶半가')))
+    // 한자는 별도 서체라 따로 불러야 한다. 안 부르면 캔버스에 네모로 찍힌다
+    await Promise.all([
+      ...wanted.map((f) => document.fonts.load(f, '가나다')),
+      document.fonts.load(`700 22px "Bujeok Hanja"`, '運急如律令吉凶半'),
+      document.fonts.load(`700 9px "Bujeok Hanja"`, '急如律令'),
+    ])
     await document.fonts.ready
   } catch {
     // 폰트를 못 불러와도 기본 서체로 그린다. 안 그리는 것보다 낫다

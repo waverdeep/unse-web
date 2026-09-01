@@ -1,5 +1,19 @@
 /* 무슨운 — design-system-v1.html 의 규칙을 그대로 옮긴 곳 */
 
+/* 나눔명조에는 한자가 한 글자도 없다.
+   그대로 두면 運·急急如律令·吉凶半 이 기기마다 다른 서체로 떨어지고,
+   안드로이드에서는 명조 옆에 고딕이 섞인다.
+   여덟 글자만 잘라낸 2KB 짜리 명조를 직접 물린다.
+   scripts/make-hanja-font.py 로 다시 만든다 */
+@font-face {
+  font-family: 'Bujeok Hanja';
+  src: url('/hanja.woff2') format('woff2');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: block;
+  unicode-range: U+4E00-9FFF;
+}
+
 :root {
   --ground: #14302e;
   --ground-lift: #1b3e3b;
@@ -53,7 +67,7 @@ body {
     var(--ground-deep) 100%
   );
   color: var(--talis);
-  font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
+  font-family: 'Nanum Myeongjo', 'Bujeok Hanja', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: contain; /* 부적을 아래로 쓸면 페이지가 새로고침된다 */
   -webkit-tap-highlight-color: transparent; /* 누를 때 회색 사각형이 번쩍인다 */
@@ -192,7 +206,7 @@ body {
   letter-spacing: 0.04em;
 }
 .t-band b {
-  font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
+  font-family: 'Nanum Myeongjo', 'Bujeok Hanja', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
   font-weight: 800;
   font-size: 12px;
 }
@@ -352,7 +366,7 @@ body {
   width: var(--card-w);
 }
 .act {
-  font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
+  font-family: 'Nanum Myeongjo', 'Bujeok Hanja', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
   font-weight: 700;
   font-size: 15px;
   padding: 14px 24px;

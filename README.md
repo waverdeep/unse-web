@@ -57,8 +57,16 @@ Git 연동은 대시보드에서 붙인다 (Settings → Builds → Connect).
 
 Worker 이름은 `wrangler.jsonc` 의 `name` 과 같아야 한다.
 
-## 아직 안 정한 것
+## 그림 다시 만들기
 
-- **도메인** — 정해지면 `src/lib/brand.ts` 의 `DOMAIN` 을 채운다.
-  비어 있으면 결과 부적에 주소가 실리지 않아 스크린샷이 돌아도 유입 경로가 없다.
-- **OG 이미지** — `index.html` 의 TODO 자리. 링크 미리보기에 부적이 보여야 한다.
+둘 다 결과물은 저장소에 들어 있어서 평소에는 돌릴 일이 없다.
+
+```bash
+python3 -m pip install pillow fonttools brotli
+
+python3 scripts/make-og.py          # public/og.png · 링크 미리보기
+python3 scripts/make-hanja-font.py  # public/hanja.woff2 · 한자 여덟 자
+```
+
+`hanja.woff2` 는 運·急如律令·吉凶半 만 담은 2KB 짜리 명조다.
+나눔명조에 한자가 한 글자도 없어서, 없으면 안드로이드에서 명조 옆에 고딕이 섞인다.
