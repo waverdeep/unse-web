@@ -4,13 +4,12 @@ import { Talisman } from './components/Talisman'
 import { LUCKS } from './data/lucks'
 import { BRAND } from './lib/brand'
 import { saveCard } from './lib/cardImage'
-import { BEAT, FAN, SPELL } from './lib/spec'
+import { BEAT, FAN } from './lib/spec'
 import { formatDate, readDrawn, todaysDeck, writeDrawn } from './lib/seed'
 import { useReducedMotion } from './lib/useReducedMotion'
 import type { Luck } from './types'
 
 const TOAST_MS = 2600
-const SPELL_COLUMNS = 96
 
 export function App() {
   const reduced = useReducedMotion()
@@ -37,11 +36,6 @@ export function App() {
   }, [])
 
   useEffect(() => () => clearTimeout(toastTimer.current), [])
-
-  // 결과가 나오면 배경 주문이 카드 뒤로 물러난다
-  useEffect(() => {
-    document.documentElement.style.setProperty('--spell', luck ? '.022' : '.05')
-  }, [luck])
 
   const drawn = useCallback(
     (index: number) => {
@@ -114,14 +108,6 @@ export function App() {
 
   return (
     <>
-      {/* 시작 화면과 결과 화면이 같은 세계에 있게 만드는 유일한 연결 고리.
-          읽히면 안 된다. 눈에 띄는 순간 배경이 아니라 요소가 된다 */}
-      <div className="spell" aria-hidden="true">
-        {Array.from({ length: SPELL_COLUMNS }, (_, i) => (
-          <i key={i}>{SPELL.repeat(20)}</i>
-        ))}
-      </div>
-
       <main className="stage">
         {!luck ? (
           <section className="intro">

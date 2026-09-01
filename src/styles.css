@@ -32,7 +32,6 @@
 
   --card-w: min(92vw, 360px);
   --cw: 56px; /* 부적 한 장의 폭. 부채의 모든 치수가 여기서 나온다 */
-  --spell: 0.05;
 }
 
 * {
@@ -59,38 +58,6 @@ body {
   overscroll-behavior-y: contain; /* 부적을 아래로 쓸면 페이지가 새로고침된다 */
   -webkit-tap-highlight-color: transparent; /* 누를 때 회색 사각형이 번쩍인다 */
   overflow-x: hidden;
-}
-
-/* ── 배경 주문 ── 읽히면 안 된다. 눈에 띄는 순간 운 이름과 경쟁한다 */
-.spell {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-  /* flex 로 나눠 놓으면 넓은 화면에서 줄 사이가 벌어져 세로 줄무늬로 읽힌다.
-     간격을 고정해 어느 폭에서나 같은 밀도가 되게 한다 */
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 30px;
-  justify-content: center;
-  align-items: start;
-  opacity: var(--spell);
-  transition: opacity 0.5s ease;
-  user-select: none;
-}
-.spell i {
-  writing-mode: vertical-rl;
-  font-style: normal;
-  font-weight: 800;
-  /* 크면 배경이 아니라 요소가 되어 운 이름과 경쟁한다.
-     간격 30px 에 글자 15px — 간격이 글자의 2배일 때 줄이 아니라 밭으로 읽힌다.
-     화면 폭에 따라 키우지 않는다. 배경은 어디서나 같은 질감이어야 한다 */
-  font-size: 15px;
-  letter-spacing: 0.18em;
-  line-height: 1;
-  color: var(--talis);
-  white-space: nowrap;
 }
 
 /* ── 무대 ── */
