@@ -27,7 +27,7 @@ export const Talisman = forwardRef<HTMLElement, Props>(function Talisman({ luck,
         <div className="t-date">{formatDate(now)}</div>
         <p className="t-lead">오늘 당신에게는</p>
         {/* 카드에서 큰 것은 운 이름 하나뿐이다 */}
-        <div className="t-name" style={{ fontSize: nameSize(luck.name.length) }}>{luck.name}</div>
+        <div className="t-name" style={{ fontSize: `${nameSize(luck.name.length)}px` }}>{luck.name}</div>
         <div className="t-rule" />
         <p className="t-prophecy">{luck.prophecy}</p>
         <p className="t-advice">

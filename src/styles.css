@@ -31,7 +31,7 @@
   --drop: 0 3px 0 rgba(0, 0, 0, 0.32);
 
   --card-w: min(92vw, 360px);
-  --spell: 0.045;
+  --spell: 0.05;
 }
 
 * {
@@ -68,8 +68,9 @@ body {
   pointer-events: none;
   overflow: hidden;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: flex-start;
+  padding: 0 2vw;
   opacity: var(--spell);
   transition: opacity 0.5s ease;
   user-select: none;
@@ -78,8 +79,9 @@ body {
   writing-mode: vertical-rl;
   font-style: normal;
   font-weight: 800;
-  font-size: clamp(28px, 9vw, 46px);
-  letter-spacing: 0.1em;
+  /* 크면 배경이 아니라 요소가 되어 운 이름과 경쟁한다 */
+  font-size: clamp(13px, 3.4vw, 18px);
+  letter-spacing: 0.18em;
   line-height: 1;
   color: var(--talis);
   white-space: nowrap;
@@ -102,6 +104,15 @@ body {
 }
 
 /* ── 시작 화면 ── 별도의 CTA 버튼 없음. 부적이 곧 버튼이다 */
+/* 날짜를 결과 부적과 같은 서체·크기로 얹어 두 화면을 같은 문서로 묶는다 */
+.intro-date {
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--dim-2);
+  margin-bottom: var(--s4);
+}
 .intro-title {
   font-weight: 800;
   font-size: clamp(42px, 11vw, 60px);
@@ -110,16 +121,18 @@ body {
   word-break: keep-all;
 }
 .intro-sub {
-  margin-top: var(--s4);
-  color: var(--dim);
-  font-size: 15px;
+  margin-top: var(--s3);
+  color: var(--dim-2);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
 }
 
 .fan {
   position: relative;
   width: 100%;
-  height: 210px; /* 13장은 바깥으로 갈수록 더 내려앉는다 */
-  margin-top: var(--s9);
+  height: 200px; /* 바깥 카드가 48px 내려앉는다 */
+  margin-top: var(--s8);
   touch-action: none;
   user-select: none;
   -webkit-touch-callout: none; /* 쓸다가 멈추면 복사 메뉴가 뜬다 */
@@ -127,10 +140,10 @@ body {
 .card {
   position: absolute;
   left: 50%;
-  top: 34px;
-  width: 64px;
-  height: 104px;
-  margin-left: -32px;
+  top: 30px;
+  width: 56px;
+  height: 90px;
+  margin-left: -28px;
   padding: 0;
   border: 0;
   background: var(--talis);
@@ -375,6 +388,10 @@ body {
     border-color 0.15s ease;
   flex: 1 1 auto;
 }
+.act[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
 .act.primary {
   background: var(--talis);
   color: var(--soot);
@@ -454,13 +471,52 @@ button:focus-visible {
   :root {
     --card-w: min(94vw, 330px);
   }
-  .intro-sub {
-    display: none;
+  .card {
+    width: 46px;
+    height: 74px;
+    margin-left: -23px;
+  }
+  .card i {
+    top: 10px;
+    width: 19px;
+    height: 19px;
+    font-size: 10px;
+  }
+}
+
+/* 17장을 담느라 부채 폭이 카드 크기에 걸린다.
+   360px 안드로이드에서 46px 카드면 5px 넘치므로 한 단 더 줄인다.
+   장수는 유지한다. 줄이면 고르는 맛이 얇아진다 */
+@media (max-width: 400px) {
+  .fan {
+    height: 186px;
   }
   .card {
-    width: 56px;
-    height: 90px;
-    margin-left: -28px;
+    width: 42px;
+    height: 68px;
+    margin-left: -21px;
+  }
+  .card i {
+    top: 9px;
+    width: 18px;
+    height: 18px;
+    font-size: 9.5px;
+  }
+}
+@media (max-width: 344px) {
+  .fan {
+    height: 172px;
+  }
+  .card {
+    width: 38px;
+    height: 62px;
+    margin-left: -19px;
+  }
+  .card i {
+    top: 8px;
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
   }
 }
 

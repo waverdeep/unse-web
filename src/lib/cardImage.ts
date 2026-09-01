@@ -1,0 +1,239 @@
+import type { Luck } from '../types'
+import { BRAND, DOMAIN } from './brand'
+import { GROUND, SEAL, SPELL, nameSize, paletteOf } from './spec'
+import { formatDate, serialOf } from './seed'
+
+/**
+ * 결과 부적을 그림 파일로 그린다.
+ *
+ * 화면을 그대로 캡처하지 않고 새로 그리는 이유는 두 가지다.
+ * 스크린샷은 기기 해상도에 따라 뭉개지고, 무엇보다 주소를 넣을 자리가 없다.
+ * 퍼지는 것은 이 그림이므로 여기에 주소가 실려야 루프가 닫힌다.
+ */
+
+const S = 3 // 인스타·카톡에서 뭉개지지 않을 배율
+const W = 360 // 카드 폭 (CSS px)
+const M = 34 // 카드 바깥 여백
+const PAD = 26 // 본문 좌우 여백
+const BAND = 30
+
+const MYEONGJO = '"Nanum Myeongjo", serif'
+const PLEX = '"IBM Plex Sans KR", sans-serif'
+
+/** 한글은 어절 단위로만 끊는다. CSS 의 word-break: keep-all 과 같은 규칙 */
+function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+  const lines: string[] = []
+  let cur = ''
+  for (const word of text.split(' ')) {
+    const next = cur ? `${cur} ${word}` : word
+    if (!cur || ctx.measureText(next).width <= maxW) {
+      cur = next
+    } else {
+      lines.push(cur)
+      cur = word
+    }
+  }
+  if (cur) lines.push(cur)
+  return lines
+}
+
+/** 세로 주문. 캔버스에는 writing-mode 가 없어 글자를 하나씩 쌓는다 */
+function drawSpell(ctx: CanvasRenderingContext2D, x: number, top: number, bottom: number, color: string) {
+  ctx.save()
+  ctx.globalAlpha = 0.3
+  ctx.fillStyle = color
+  ctx.font = `700 9px ${MYEONGJO}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'top'
+  const stepY = 9 + 9 * 0.24
+  for (let y = top, i = 0; y < bottom; y += stepY, i++) {
+    ctx.fillText(SPELL[i % SPELL.length]!, x, y)
+  }
+  ctx.restore()
+}
+
+function drawSeal(ctx: CanvasRenderingContext2D, cx: number, cy: number, glyph: string, color: string) {
+  ctx.save()
+  ctx.globalAlpha = 0.55
+  ctx.translate(cx, cy)
+  ctx.rotate((-11 * Math.PI) / 180)
+  ctx.strokeStyle = color
+  ctx.lineWidth = 3
+  ctx.strokeRect(-23, -23, 46, 46)
+  ctx.fillStyle = color
+  ctx.font = `800 22px ${MYEONGJO}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(glyph, 0, 1)
+  ctx.restore()
+}
+
+async function ensureFonts(nameFont: number): Promise<void> {
+  const wanted = [
+    `800 ${nameFont}px ${MYEONGJO}`,
+    `800 12px ${MYEONGJO}`,
+    `700 15.5px ${MYEONGJO}`,
+    `700 9px ${MYEONGJO}`,
+    `800 22px ${MYEONGJO}`,
+    `400 14px ${MYEONGJO}`,
+    `500 10px ${PLEX}`,
+    `600 10px ${PLEX}`,
+  ]
+  try {
+    await Promise.all(wanted.map((f) => document.fonts.load(f, '運吉凶半가')))
+    await document.fonts.ready
+  } catch {
+    // 폰트를 못 불러와도 기본 서체로 그린다. 안 그리는 것보다 낫다
+  }
+}
+
+export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
+  const p = paletteOf(luck.type)
+  const nameFont = nameSize(luck.name.length)
+  await ensureFonts(nameFont)
+
+  const inner = W - PAD * 2
+  const measure = document.createElement('canvas').getContext('2d')
+  if (!measure) throw new Error('캔버스를 만들지 못했습니다')
+
+  measure.font = `700 15.5px ${MYEONGJO}`
+  const prophecy = wrap(measure, luck.prophecy, inner)
+  measure.font = `400 14px ${MYEONGJO}`
+  const advice = wrap(measure, luck.advice, inner - 13)
+
+  // 세로 배치를 먼저 계산해 카드 높이를 정한다
+  let y = BAND + 14
+  const yDate = y
+  y += 12
+  const yLead = y + 12
+  y = yLead + 14 + 2
+  const yName = y
+  y += nameFont * 1.06
+  const yRule = y + 13
+  y = yRule + 3 + 11
+  const yProphecy = y
+  y += prophecy.length * 15.5 * 1.62
+  const yAdvice = y + 12
+  y = yAdvice + advice.length * 14 * 1.6
+  const ySeal = y + 14
+  y = ySeal + 46
+  const yFine = y + 16
+  const cardH = yFine + 8 + 16 + 16
+
+  const canvas = document.createElement('canvas')
+  canvas.width = (W + M * 2) * S
+  canvas.height = (cardH + M * 2) * S
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('캔버스를 만들지 못했습니다')
+  ctx.scale(S, S)
+  ctx.textBaseline = 'top'
+
+  // 바탕
+  ctx.fillStyle = GROUND
+  ctx.fillRect(0, 0, W + M * 2, cardH + M * 2)
+
+  ctx.save()
+  ctx.translate(M, M)
+
+  // 종이 · 단단한 그림자 하나. 부적은 빛나지 않는다
+  ctx.fillStyle = 'rgba(0,0,0,.32)'
+  ctx.fillRect(0, 3, W, cardH)
+  ctx.fillStyle = p.paper
+  ctx.fillRect(0, 0, W, cardH)
+
+  // 머리띠
+  ctx.fillStyle = p.band
+  ctx.fillRect(0, 0, W, BAND)
+  ctx.fillStyle = p.bandInk
+  ctx.textAlign = 'left'
+  ctx.font = `800 12px ${MYEONGJO}`
+  ctx.fillText(BRAND, 13, 9)
+  ctx.textAlign = 'right'
+  ctx.font = `600 10px ${PLEX}`
+  ctx.fillText(serialOf(luck.id), W - 13, 10)
+
+  drawSpell(ctx, 12, BAND + 2, cardH - 6, p.accent)
+  drawSpell(ctx, W - 12, BAND + 2, cardH - 6, p.accent)
+
+  ctx.textAlign = 'left'
+
+  ctx.globalAlpha = 0.6
+  ctx.fillStyle = p.ink
+  ctx.font = `500 9.5px ${PLEX}`
+  ctx.fillText(formatDate(now), PAD, yDate)
+
+  ctx.globalAlpha = 0.75
+  ctx.font = `700 14px ${MYEONGJO}`
+  ctx.fillText('오늘 당신에게는', PAD, yLead)
+
+  // 카드에서 큰 것은 운 이름 하나뿐이다
+  ctx.globalAlpha = 1
+  ctx.fillStyle = p.accent
+  ctx.font = `800 ${nameFont}px ${MYEONGJO}`
+  ctx.fillText(luck.name, PAD, yName)
+
+  ctx.globalAlpha = 0.3
+  ctx.fillStyle = p.ink
+  ctx.fillRect(PAD, yRule, inner, 3)
+
+  ctx.globalAlpha = 1
+  ctx.font = `700 15.5px ${MYEONGJO}`
+  prophecy.forEach((line, i) => ctx.fillText(line, PAD, yProphecy + i * 15.5 * 1.62))
+
+  ctx.globalAlpha = 0.85
+  ctx.font = `400 14px ${MYEONGJO}`
+  advice.forEach((line, i) => ctx.fillText(line, PAD + 13, yAdvice + i * 14 * 1.6))
+  ctx.globalAlpha = 1
+  ctx.fillStyle = p.accent
+  ctx.beginPath()
+  ctx.arc(PAD + 3, yAdvice + 9, 3, 0, Math.PI * 2)
+  ctx.fill()
+
+  drawSeal(ctx, W - PAD - 23, ySeal + 23, SEAL[luck.type] ?? '半', p.accent)
+
+  ctx.globalAlpha = 0.55
+  ctx.fillStyle = p.ink
+  ctx.fillRect(PAD, yFine, inner, 1)
+  ctx.font = `400 9.5px ${PLEX}`
+  ctx.fillText('본 부적은 아무런 효력이 없습니다.', PAD, yFine + 8)
+  ctx.textAlign = 'right'
+  ctx.fillText(DOMAIN || '100종 중 1종', W - PAD, yFine + 8)
+
+  ctx.restore()
+
+  return await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('그림을 만들지 못했습니다'))), 'image/png')
+  })
+}
+
+export function fileNameFor(luck: Luck, now: Date): string {
+  const d = formatDate(now).slice(0, 10).replace(/\./g, '')
+  return `오늘의운_${luck.name}_${d}.png`
+}
+
+export type SaveResult = 'shared' | 'downloaded'
+
+/**
+ * 저장. iOS 는 <a download> 가 잘 듣지 않아 공유 시트로 넘긴다.
+ * 거기서 "이미지 저장"을 고르면 사진첩에 들어간다.
+ */
+export async function saveCard(luck: Luck, now: Date): Promise<SaveResult> {
+  const blob = await renderCard(luck, now)
+  const name = fileNameFor(luck, now)
+  const file = new File([blob], name, { type: 'image/png' })
+
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({ files: [file] })
+    return 'shared'
+  }
+
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  return 'downloaded'
+}

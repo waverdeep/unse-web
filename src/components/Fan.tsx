@@ -8,7 +8,7 @@ interface Props {
 }
 
 /**
- * 부적 아홉 장.
+ * 부적 열일곱 장.
  *
  * 쓸어 넘기는 동안 카드마다 transform 을 초당 수십 번 고쳐야 해서
  * 상태로 관리하지 않고 DOM 을 직접 만진다. React 는 카드를 만드는 데까지만 쓴다.
@@ -16,22 +16,21 @@ interface Props {
 export function Fan({ onDrawn, reduced }: Props) {
   const cardsRef = useRef<(HTMLButtonElement | null)[]>([])
   const drawnRef = useRef(false)
+  const dealtRef = useRef(false)
   const activeRef = useRef<number | null>(null)
   const timersRef = useRef<number[]>([])
-
-  const step = () => (window.innerWidth <= 560 ? FAN.stepNarrow : FAN.stepWide)
 
   const place = useCallback((i: number, lift: number) => {
     const el = cardsRef.current[i]
     if (!el) return
     const scale = (1 + FAN.grow * (lift / FAN.lift)).toFixed(4)
-    el.style.transform = `rotate(${(i - FAN.mid) * step()}deg) translateY(${-lift}px) scale(${scale})`
+    el.style.transform = `rotate(${(i - FAN.mid) * FAN.step}deg) translateY(${-lift}px) scale(${scale})`
     el.style.boxShadow = shadowFor(lift)
   }, [])
 
   /** 카드가 겹쳐 있어 클릭 영역 대신 각 장의 x 중심과의 거리로 판정한다 */
   const nearest = useCallback((x: number) => {
-    let best: number = FAN.mid
+    let best = 0
     let bestDist = Infinity
     cardsRef.current.forEach((el, i) => {
       if (!el) return
@@ -48,7 +47,7 @@ export function Fan({ onDrawn, reduced }: Props) {
   /** 물결은 들림의 크기가 아니라 시차에서 나온다. 동시에 움직이면 한 덩어리가 출렁인다 */
   const hover = useCallback(
     (idx: number | null) => {
-      if (drawnRef.current) return
+      if (drawnRef.current || !dealtRef.current) return
       cardsRef.current.forEach((el, i) => {
         if (!el) return
         const d = idx === null ? FAN.maxWave : Math.abs(i - idx)
@@ -75,17 +74,18 @@ export function Fan({ onDrawn, reduced }: Props) {
       }
       const push = (fn: () => void, ms: number) => timersRef.current.push(window.setTimeout(fn, ms))
 
-      // 1박 · 뽑은 장이 솟아 똑바로 서고 그림자가 깊어진다. 나머지는 물러난다
+      // 1박 · 뽑은 장이 스프레드에서 위로 삭 빠져나온다. 나머지는 물러난다
       pick.style.zIndex = '200'
-      pick.style.transition = `transform ${BEAT.one}ms ${BEAT.ease}, box-shadow ${BEAT.one}ms ease`
+      pick.style.transition = `transform ${BEAT.one}ms cubic-bezier(.16,1.02,.4,1), box-shadow ${BEAT.one}ms ease`
       pick.style.transitionDelay = '0ms'
       pick.style.transform = `rotate(0deg) translateY(${-BEAT.rise}px) scale(${BEAT.riseScale})`
-      pick.style.boxShadow = '0 20px 30px rgba(0,0,0,.42), -2px 12px 34px rgba(0,0,0,.24)'
+      pick.style.boxShadow = '0 24px 34px rgba(0,0,0,.44), -2px 14px 40px rgba(0,0,0,.26)'
       cards.forEach((el, i) => {
         if (!el || i === idx) return
         el.style.transition = `transform ${BEAT.one}ms ease, opacity ${BEAT.one}ms ease`
         el.style.transitionDelay = '0ms'
-        el.style.opacity = '.42'
+        el.style.transform = `rotate(${(i - FAN.mid) * FAN.step}deg) translateY(6px) scale(.97)`
+        el.style.opacity = '.36'
       })
 
       // 2박 · 남은 부채가 가운데로 접히며 사라진다. 바깥 장부터
@@ -96,7 +96,7 @@ export function Fan({ onDrawn, reduced }: Props) {
           const fromOutside = FAN.maxWave - Math.min(Math.abs(i - FAN.mid), FAN.maxWave)
           el.style.transition = `transform ${dur}ms ${BEAT.ease}, opacity ${dur}ms ease`
           el.style.transitionDelay = `${fromOutside * BEAT.twoStagger}ms`
-          el.style.transform = 'rotate(0deg) scale(.96)'
+          el.style.transform = 'rotate(0deg) translateY(10px) scale(.94)'
           el.style.opacity = '0'
         })
       }, BEAT.one)
@@ -115,37 +115,48 @@ export function Fan({ onDrawn, reduced }: Props) {
     [onDrawn, reduced],
   )
 
-  // 펼침 · 가운데부터 바깥으로 시차를 두고 열린다
+  // 촤라락 · 쥐고 있던 덱이 왼쪽에서 오른쪽으로 훑리며 펴진다
   useEffect(() => {
     const cards = cardsRef.current
-    cards.forEach((el, i) => {
+    cards.forEach((el) => {
       if (!el) return
-      el.style.zIndex = String(i)
-      el.style.transform = 'rotate(0deg)'
+      el.style.transform = `rotate(0deg) translateY(${FAN.dealFrom.y}px) scale(${FAN.dealFrom.scale})`
       el.style.boxShadow = shadowFor(0)
-      el.style.transition =
-        `transform ${FAN.dealMs}ms ${BEAT.ease}, box-shadow ${FAN.hoverMs}ms ease, opacity ${BEAT.one}ms ease`
-      el.style.transitionDelay = `${Math.abs(i - FAN.mid) * FAN.dealStagger}ms`
+    })
+    cards.forEach((el, i) => {
+      if (el) el.style.zIndex = String(i)
     })
 
     if (reduced) {
       cards.forEach((_, i) => place(i, 0))
+      dealtRef.current = true
       return
     }
+
+    cards.forEach((el, i) => {
+      if (!el) return
+      el.style.transition =
+        `transform ${FAN.dealMs}ms cubic-bezier(.17,.89,.32,1.06), box-shadow ${FAN.hoverMs}ms ease, opacity ${BEAT.one}ms ease`
+      el.style.transitionDelay = `${i * FAN.dealStagger}ms`
+    })
 
     let raf2 = 0
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => cards.forEach((_, i) => place(i, 0)))
     })
-    // 다 펼쳐지면 쓸어 넘기기용 짧은 전환으로 갈아탄다
-    const settle = window.setTimeout(() => {
-      cards.forEach((el) => {
-        if (!el) return
-        el.style.transition =
-          `transform ${FAN.hoverMs}ms ${FAN.hoverEase}, box-shadow ${FAN.hoverMs}ms ease, opacity ${BEAT.one}ms ease`
-        el.style.transitionDelay = '0ms'
-      })
-    }, FAN.dealMs + FAN.dealStagger * FAN.mid + 40)
+    // 다 펴지면 쓸어 넘기기용 짧은 전환으로 갈아탄다
+    const settle = window.setTimeout(
+      () => {
+        cards.forEach((el) => {
+          if (!el) return
+          el.style.transition =
+            `transform ${FAN.hoverMs}ms ${FAN.hoverEase}, box-shadow ${FAN.hoverMs}ms ease, opacity ${BEAT.one}ms ease`
+          el.style.transitionDelay = '0ms'
+        })
+        dealtRef.current = true
+      },
+      FAN.dealMs + FAN.dealStagger * (FAN.count - 1) + 40,
+    )
 
     return () => {
       cancelAnimationFrame(raf1)
@@ -153,16 +164,6 @@ export function Fan({ onDrawn, reduced }: Props) {
       clearTimeout(settle)
     }
   }, [place, reduced])
-
-  // 화면 폭이 바뀌면 각도가 달라진다
-  useEffect(() => {
-    const onResize = () => {
-      if (drawnRef.current) return
-      cardsRef.current.forEach((_, i) => place(i, 0))
-    }
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [place])
 
   useEffect(() => {
     const timers = timersRef.current
@@ -173,7 +174,7 @@ export function Fan({ onDrawn, reduced }: Props) {
     <div
       className="fan"
       role="group"
-      aria-label="부적 아홉 장. 한 장을 고르세요"
+      aria-label="부적 열일곱 장. 한 장을 고르세요"
       onPointerDown={(e) => {
         if (drawnRef.current) return
         activeRef.current = nearest(e.clientX)
@@ -219,7 +220,7 @@ export function Fan({ onDrawn, reduced }: Props) {
           }}
           onClick={() => draw(i)}
         >
-          {/* 표식을 위쪽에 둔 것은 회전축이 아래라 펼쳐지면 윗부분이 가장 넓게 드러나기 때문 */}
+          {/* 표식을 위쪽에 둔 것은 회전축이 아래라 펴지면 윗부분이 가장 넓게 드러나기 때문 */}
           <i aria-hidden="true">運</i>
         </button>
       ))}

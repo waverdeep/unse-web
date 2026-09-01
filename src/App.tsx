@@ -3,22 +3,25 @@ import { Fan } from './components/Fan'
 import { Talisman } from './components/Talisman'
 import { LUCKS } from './data/lucks'
 import { BRAND } from './lib/brand'
+import { saveCard } from './lib/cardImage'
 import { BEAT, FAN, SPELL } from './lib/spec'
-import { readDrawn, todaysDeck, writeDrawn } from './lib/seed'
+import { formatDate, readDrawn, todaysDeck, writeDrawn } from './lib/seed'
 import { useReducedMotion } from './lib/useReducedMotion'
 import type { Luck } from './types'
 
 const TOAST_MS = 2600
+const SPELL_COLUMNS = 7
 
 export function App() {
   const reduced = useReducedMotion()
   const [toast, setToast] = useState('')
+  const [saving, setSaving] = useState(false)
   const cardRef = useRef<HTMLElement>(null)
   const toastTimer = useRef<number | undefined>(undefined)
 
   const now = useMemo(() => new Date(), [])
 
-  // 오늘 이 기기 앞에 놓이는 열세 장. 날짜와 기기로만 정해진다
+  // 오늘 이 기기 앞에 놓이는 열일곱 장. 날짜와 기기로만 정해진다
   const deck = useMemo(() => todaysDeck(LUCKS, now, FAN.count), [now])
 
   // 무엇을 집을지는 손이 정한다. 한 번 집으면 그날은 잠긴다
@@ -37,7 +40,7 @@ export function App() {
 
   // 결과가 나오면 배경 주문이 카드 뒤로 물러난다
   useEffect(() => {
-    document.documentElement.style.setProperty('--spell', luck ? '.020' : '.045')
+    document.documentElement.style.setProperty('--spell', luck ? '.022' : '.05')
   }, [luck])
 
   const drawn = useCallback(
@@ -95,18 +98,34 @@ export function App() {
     say('주소창의 링크를 복사해 보내세요.')
   }, [luck, say])
 
+  const save = useCallback(async () => {
+    if (!luck || saving) return
+    setSaving(true)
+    try {
+      const how = await saveCard(luck, now)
+      if (how === 'downloaded') say('부적을 저장했습니다.')
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') return // 공유 시트를 그냥 닫은 경우
+      say('저장하지 못했습니다. 스크린샷으로 남겨주세요.')
+    } finally {
+      setSaving(false)
+    }
+  }, [luck, now, say, saving])
+
   return (
     <>
-      {/* 시작 화면과 결과 화면이 같은 세계에 있게 만드는 유일한 연결 고리 */}
+      {/* 시작 화면과 결과 화면이 같은 세계에 있게 만드는 유일한 연결 고리.
+          읽히면 안 된다. 눈에 띄는 순간 배경이 아니라 요소가 된다 */}
       <div className="spell" aria-hidden="true">
-        {Array.from({ length: 5 }, (_, i) => (
-          <i key={i}>{SPELL.repeat(14)}</i>
+        {Array.from({ length: SPELL_COLUMNS }, (_, i) => (
+          <i key={i}>{SPELL.repeat(26)}</i>
         ))}
       </div>
 
       <main className="stage">
         {!luck ? (
-          <section>
+          <section className="intro">
+            <div className="intro-date">{formatDate(now)}</div>
             <h1 className="intro-title">
               오늘 당신에게
               <br />
@@ -116,18 +135,14 @@ export function App() {
             <Fan reduced={reduced} onDrawn={drawn} />
           </section>
         ) : (
-          <section>
+          <section className="result">
             <Talisman luck={luck} now={now} ref={cardRef} />
             <div className="btns">
               <button type="button" className="act primary" onClick={share}>
                 친구에게 보내기
               </button>
-              <button
-                type="button"
-                className="act"
-                onClick={() => say('스크린샷으로 저장하세요. 부적만 잘라내면 됩니다.')}
-              >
-                캡처해서 자랑하기
+              <button type="button" className="act" onClick={save} disabled={saving}>
+                {saving ? '부적 그리는 중' : '부적 저장하기'}
               </button>
             </div>
             {/* 오늘은 이미 골랐다. 다시 뽑기를 두면 고른 것이 무의미해진다 */}
