@@ -11,8 +11,11 @@
 pnpm install
 pnpm dev          # http://localhost:5173
 pnpm build        # 타입체크 + 빌드
-pnpm deploy       # 빌드 후 Cloudflare 배포
+pnpm run deploy   # 빌드 후 Cloudflare 배포
 ```
+
+`deploy` 는 `pnpm run` 을 붙여야 한다. `pnpm deploy` 는 pnpm 내장 워크스페이스 명령이라
+이 스크립트가 아니라 엉뚱한 것이 돌아간다.
 
 ## 운 100개
 
