@@ -10,7 +10,7 @@ import { useReducedMotion } from './lib/useReducedMotion'
 import type { Luck } from './types'
 
 const TOAST_MS = 2600
-const SPELL_COLUMNS = 7
+const SPELL_COLUMNS = 48
 
 export function App() {
   const reduced = useReducedMotion()

@@ -17,7 +17,7 @@ const M = 34 // 카드 바깥 여백
 const PAD = 26 // 본문 좌우 여백
 const BAND = 30
 
-const MYEONGJO = '"Nanum Myeongjo", serif'
+const MYEONGJO = '"Nanum Myeongjo", AppleMyungjo, Batang, "Noto Serif KR", serif'
 const PLEX = '"IBM Plex Sans KR", sans-serif'
 
 /** 한글은 어절 단위로만 끊는다. CSS 의 word-break: keep-all 과 같은 규칙 */

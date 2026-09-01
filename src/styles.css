@@ -31,6 +31,7 @@
   --drop: 0 3px 0 rgba(0, 0, 0, 0.32);
 
   --card-w: min(92vw, 360px);
+  --cw: 56px; /* 부적 한 장의 폭. 부채의 모든 치수가 여기서 나온다 */
   --spell: 0.05;
 }
 
@@ -53,7 +54,7 @@ body {
     var(--ground-deep) 100%
   );
   color: var(--talis);
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: contain; /* 부적을 아래로 쓸면 페이지가 새로고침된다 */
   -webkit-tap-highlight-color: transparent; /* 누를 때 회색 사각형이 번쩍인다 */
@@ -67,10 +68,13 @@ body {
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 0 2vw;
+  /* flex 로 나눠 놓으면 넓은 화면에서 줄 사이가 벌어져 세로 줄무늬로 읽힌다.
+     간격을 고정해 어느 폭에서나 같은 밀도가 되게 한다 */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 58px;
+  justify-content: center;
+  align-items: start;
   opacity: var(--spell);
   transition: opacity 0.5s ease;
   user-select: none;
@@ -131,8 +135,9 @@ body {
 .fan {
   position: relative;
   width: 100%;
-  height: 200px; /* 바깥 카드가 48px 내려앉는다 */
-  margin-top: var(--s8);
+  /* 카드 높이 + 바깥 장이 내려앉는 만큼. 회전축이 313% 라 둘 다 카드 폭에서 나온다 */
+  height: calc(30px + var(--cw) * 2.75);
+  margin-top: var(--s6);
   touch-action: none;
   user-select: none;
   -webkit-touch-callout: none; /* 쓸다가 멈추면 복사 메뉴가 뜬다 */
@@ -140,10 +145,10 @@ body {
 .card {
   position: absolute;
   left: 50%;
-  top: 30px;
-  width: 56px;
-  height: 90px;
-  margin-left: -28px;
+  top: 26px;
+  width: var(--cw);
+  height: calc(var(--cw) * 1.61);
+  margin-left: calc(var(--cw) / -2);
   padding: 0;
   border: 0;
   background: var(--talis);
@@ -163,19 +168,23 @@ body {
     inset 1px 0 0 rgba(36, 23, 8, 0.2),
     inset -1px 0 0 rgba(255, 255, 255, 0.32);
 }
+/* 표식은 보이는 띠 안에 들어와야 한다.
+   카드가 왼쪽부터 쌓여 드러나는 곳은 각 장의 왼쪽 38% 뿐이라,
+   가로 가운데 두면 맨 앞 한 장에서만 온전히 보이고 나머지는 초승달로 잘린다 */
 .card i {
   position: absolute;
-  left: 50%;
-  top: 13px;
+  left: 19%;
+  top: 11%;
   transform: translateX(-50%);
-  width: 22px;
-  height: 22px;
+  width: calc(var(--cw) * 0.3);
+  height: calc(var(--cw) * 0.3);
   border-radius: 50%;
   background: var(--cinnabar);
   color: var(--talis);
   font-style: normal;
   font-weight: 800;
-  font-size: 12px;
+  font-size: calc(var(--cw) * 0.17);
+  line-height: 1;
   display: grid;
   place-items: center;
 }
@@ -214,7 +223,7 @@ body {
   letter-spacing: 0.04em;
 }
 .t-band b {
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
   font-weight: 800;
   font-size: 12px;
 }
@@ -374,7 +383,7 @@ body {
   width: var(--card-w);
 }
 .act {
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
   font-weight: 700;
   font-size: 15px;
   padding: 14px 24px;
@@ -460,27 +469,22 @@ button:focus-visible {
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--s5));
   }
   .fan {
-    margin-top: var(--s7);
+    margin-top: var(--s4);
   }
   .btns {
     margin-top: var(--s5);
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --cw: 64px; /* 데스크톱에서는 부채가 더 커야 화면을 버틴다 */
   }
 }
 @media (max-width: 560px) {
   /* 카드 폭은 :root 에서 바꾼다. 결과 카드에만 걸면 버튼 줄이 따라 좁아지지 않는다 */
   :root {
     --card-w: min(94vw, 330px);
-  }
-  .card {
-    width: 46px;
-    height: 74px;
-    margin-left: -23px;
-  }
-  .card i {
-    top: 10px;
-    width: 19px;
-    height: 19px;
-    font-size: 10px;
+    --cw: 46px;
   }
 }
 
@@ -488,35 +492,13 @@ button:focus-visible {
    360px 안드로이드에서 46px 카드면 5px 넘치므로 한 단 더 줄인다.
    장수는 유지한다. 줄이면 고르는 맛이 얇아진다 */
 @media (max-width: 400px) {
-  .fan {
-    height: 186px;
-  }
-  .card {
-    width: 42px;
-    height: 68px;
-    margin-left: -21px;
-  }
-  .card i {
-    top: 9px;
-    width: 18px;
-    height: 18px;
-    font-size: 9.5px;
+  :root {
+    --cw: 42px;
   }
 }
 @media (max-width: 344px) {
-  .fan {
-    height: 172px;
-  }
-  .card {
-    width: 38px;
-    height: 62px;
-    margin-left: -19px;
-  }
-  .card i {
-    top: 8px;
-    width: 16px;
-    height: 16px;
-    font-size: 9px;
+  :root {
+    --cw: 38px;
   }
 }
 
