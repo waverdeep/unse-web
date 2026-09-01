@@ -10,7 +10,7 @@ import { useReducedMotion } from './lib/useReducedMotion'
 import type { Luck } from './types'
 
 const TOAST_MS = 2600
-const SPELL_COLUMNS = 48
+const SPELL_COLUMNS = 96
 
 export function App() {
   const reduced = useReducedMotion()
@@ -118,7 +118,7 @@ export function App() {
           읽히면 안 된다. 눈에 띄는 순간 배경이 아니라 요소가 된다 */}
       <div className="spell" aria-hidden="true">
         {Array.from({ length: SPELL_COLUMNS }, (_, i) => (
-          <i key={i}>{SPELL.repeat(26)}</i>
+          <i key={i}>{SPELL.repeat(20)}</i>
         ))}
       </div>
 

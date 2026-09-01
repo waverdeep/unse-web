@@ -72,7 +72,7 @@ body {
      간격을 고정해 어느 폭에서나 같은 밀도가 되게 한다 */
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 58px;
+  grid-auto-columns: 30px;
   justify-content: center;
   align-items: start;
   opacity: var(--spell);
@@ -83,8 +83,10 @@ body {
   writing-mode: vertical-rl;
   font-style: normal;
   font-weight: 800;
-  /* 크면 배경이 아니라 요소가 되어 운 이름과 경쟁한다 */
-  font-size: clamp(13px, 3.4vw, 18px);
+  /* 크면 배경이 아니라 요소가 되어 운 이름과 경쟁한다.
+     간격 30px 에 글자 15px — 간격이 글자의 2배일 때 줄이 아니라 밭으로 읽힌다.
+     화면 폭에 따라 키우지 않는다. 배경은 어디서나 같은 질감이어야 한다 */
+  font-size: 15px;
   letter-spacing: 0.18em;
   line-height: 1;
   color: var(--talis);
