@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "unse-web",
+  "compatibility_date": "2026-09-01",
+
+  // 서버 로직이 없다. Worker 스크립트 없이 정적 자산만 서빙한다.
+  // 이 경우 Worker 코드가 실행되지 않아 요청 요금이 발생하지 않는다.
+  "assets": {
+    "directory": "./dist",
+    // 부적 한 장짜리 단일 화면이라 클라이언트 라우팅이 없지만,
+    // 오타 주소로 들어와도 빈 404 대신 시작 화면이 뜨는 편이 낫다.
+    "not_found_handling": "single-page-application"
+  },
+
+  "observability": { "enabled": true }
+}

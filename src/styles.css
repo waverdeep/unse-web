@@ -1,0 +1,475 @@
+/* 오늘의운 — design-system-v1.html 의 규칙을 그대로 옮긴 곳 */
+
+:root {
+  --ground: #14302e;
+  --ground-lift: #1b3e3b;
+  --ground-deep: #0e2321;
+  --talis: #f0c93f;
+  --cinnabar: #b32b1e;
+  --bone: #ddd3b6;
+  --soot: #241708;
+
+  /* 바탕 위 보조 텍스트에 회색을 쓰지 않는다. 노랑의 투명도만 낮춘다 */
+  --dim: rgba(240, 201, 63, 0.5);
+  --dim-2: rgba(240, 201, 63, 0.32);
+  --dim-3: rgba(240, 201, 63, 0.16);
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+  --s8: 40px;
+  --s9: 56px;
+
+  /* 종이는 둥글지도 빛나지도 않는다 */
+  --r-paper: 1px;
+  --r-ui: 1px;
+  --r-seal: 2px;
+  --drop: 0 3px 0 rgba(0, 0, 0, 0.32);
+
+  --card-w: min(92vw, 360px);
+  --spell: 0.045;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--ground);
+  background-image: radial-gradient(
+    ellipse 90% 50% at 50% 0%,
+    var(--ground-lift) 0%,
+    var(--ground) 40%,
+    var(--ground-deep) 100%
+  );
+  color: var(--talis);
+  font-family: 'Nanum Myeongjo', serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: contain; /* 부적을 아래로 쓸면 페이지가 새로고침된다 */
+  -webkit-tap-highlight-color: transparent; /* 누를 때 회색 사각형이 번쩍인다 */
+  overflow-x: hidden;
+}
+
+/* ── 배경 주문 ── 읽히면 안 된다. 눈에 띄는 순간 운 이름과 경쟁한다 */
+.spell {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  opacity: var(--spell);
+  transition: opacity 0.5s ease;
+  user-select: none;
+}
+.spell i {
+  writing-mode: vertical-rl;
+  font-style: normal;
+  font-weight: 800;
+  font-size: clamp(28px, 9vw, 46px);
+  letter-spacing: 0.1em;
+  line-height: 1;
+  color: var(--talis);
+  white-space: nowrap;
+}
+
+/* ── 무대 ── */
+.stage {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* 가운데 정렬은 내용이 화면보다 길면 위쪽을 잘라낸다 */
+  justify-content: safe center;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top) + var(--s8)) var(--s5)
+    calc(env(safe-area-inset-bottom) + var(--s8));
+  text-align: center;
+}
+
+/* ── 시작 화면 ── 별도의 CTA 버튼 없음. 부적이 곧 버튼이다 */
+.intro-title {
+  font-weight: 800;
+  font-size: clamp(42px, 11vw, 60px);
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.intro-sub {
+  margin-top: var(--s4);
+  color: var(--dim);
+  font-size: 15px;
+}
+
+.fan {
+  position: relative;
+  width: 100%;
+  height: 210px; /* 13장은 바깥으로 갈수록 더 내려앉는다 */
+  margin-top: var(--s9);
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none; /* 쓸다가 멈추면 복사 메뉴가 뜬다 */
+}
+.card {
+  position: absolute;
+  left: 50%;
+  top: 34px;
+  width: 64px;
+  height: 104px;
+  margin-left: -32px;
+  padding: 0;
+  border: 0;
+  background: var(--talis);
+  border-radius: var(--r-paper);
+  transform-origin: 50% 313%;
+  will-change: transform;
+  cursor: pointer;
+}
+/* 같은 노란 면이 겹치면 한 덩어리로 보인다. 갈라놓는 건 색이 아니라 모서리와 그림자다 */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 1px 0 0 rgba(36, 23, 8, 0.2),
+    inset -1px 0 0 rgba(255, 255, 255, 0.32);
+}
+.card i {
+  position: absolute;
+  left: 50%;
+  top: 13px;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  color: var(--talis);
+  font-style: normal;
+  font-weight: 800;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+}
+
+/* ── 결과 화면 ── */
+.talisman {
+  width: var(--card-w);
+  background: var(--talis);
+  color: var(--soot);
+  position: relative;
+  border-radius: var(--r-paper);
+  box-shadow: var(--drop);
+  overflow: hidden;
+  text-align: left;
+  transform-origin: 50% 50%;
+}
+.talisman[data-type='bad'] {
+  background: var(--cinnabar);
+  color: var(--talis);
+}
+.talisman[data-type='ambiguous'] {
+  background: var(--bone);
+  color: #3a2e18;
+}
+
+.t-band {
+  background: var(--cinnabar);
+  color: var(--talis);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 13px;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.t-band b {
+  font-family: 'Nanum Myeongjo', serif;
+  font-weight: 800;
+  font-size: 12px;
+}
+.talisman[data-type='bad'] .t-band {
+  background: var(--soot);
+}
+.talisman[data-type='ambiguous'] .t-band {
+  background: #3a2e18;
+  color: var(--bone);
+}
+
+.v-strip {
+  position: absolute;
+  top: 32px;
+  bottom: 0;
+  width: 14px;
+  writing-mode: vertical-rl;
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  color: var(--cinnabar);
+  opacity: 0.3;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+.v-left {
+  left: 5px;
+}
+.v-right {
+  right: 5px;
+}
+.talisman[data-type='bad'] .v-strip {
+  color: var(--talis);
+  opacity: 0.32;
+}
+.talisman[data-type='ambiguous'] .v-strip {
+  color: #a8321f;
+  opacity: 0.3;
+}
+
+.t-body {
+  padding: 14px 26px 16px;
+}
+.t-date {
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+.t-lead {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+.t-name {
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  margin-top: 2px;
+  color: var(--cinnabar);
+  word-break: keep-all;
+}
+.talisman[data-type='bad'] .t-name {
+  color: var(--talis);
+}
+.talisman[data-type='ambiguous'] .t-name {
+  color: #a8321f;
+}
+.t-rule {
+  height: 3px;
+  background: currentColor;
+  opacity: 0.3;
+  margin: 13px 0 11px;
+}
+.t-prophecy {
+  font-size: 15.5px;
+  line-height: 1.62;
+  font-weight: 700;
+  word-break: keep-all;
+}
+/* 조언은 라벨 없이 붉은 점 하나로 연다 */
+.t-advice {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.85;
+  word-break: keep-all;
+  text-indent: -13px;
+  padding-left: 13px;
+}
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  margin-right: 7px;
+  vertical-align: middle;
+  position: relative;
+  top: -2px;
+}
+.talisman[data-type='bad'] .dot {
+  background: var(--talis);
+}
+.talisman[data-type='ambiguous'] .dot {
+  background: #a8321f;
+}
+
+/* 도장은 흐름 안에 둔다. absolute 로 고정하면 두 줄짜리 조언 위에 얹힌다 */
+.seal {
+  margin: 14px 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border: 3px solid var(--cinnabar);
+  color: var(--cinnabar);
+  border-radius: var(--r-seal);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 22px;
+  transform: rotate(-11deg);
+  opacity: 0.55;
+}
+.talisman[data-type='bad'] .seal {
+  border-color: var(--talis);
+  color: var(--talis);
+}
+.talisman[data-type='ambiguous'] .seal {
+  border-color: #a8321f;
+  color: #a8321f;
+}
+
+.t-fine {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid currentColor;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 9.5px;
+  line-height: 1.6;
+  opacity: 0.55;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* ── 버튼 ── 기능이 아니라 행동을 말한다 */
+.btns {
+  display: flex;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--s6);
+  width: var(--card-w);
+}
+.act {
+  font-family: 'Nanum Myeongjo', serif;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 24px;
+  border-radius: var(--r-ui);
+  cursor: pointer;
+  border: 1.5px solid var(--dim);
+  background: transparent;
+  color: var(--talis);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+  flex: 1 1 auto;
+}
+.act.primary {
+  background: var(--talis);
+  color: var(--soot);
+  border-color: var(--talis);
+  font-weight: 800;
+}
+/* 터치에서는 누른 상태가 손을 떼도 남는다 */
+@media (hover: hover) {
+  .act:hover {
+    background: rgba(240, 201, 63, 0.1);
+    border-color: var(--talis);
+  }
+}
+/* 오늘은 이미 골랐다는 사실을 조용히 알린다 */
+.closed {
+  margin-top: var(--s5);
+  color: var(--dim-2);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12px;
+}
+
+.ghost {
+  background: none;
+  border: 0;
+  color: var(--dim-2);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: var(--s3) var(--s2);
+  flex: 1 0 100%;
+  margin-top: var(--s1);
+}
+button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + var(--s6));
+  background: var(--soot);
+  color: var(--talis);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12.5px;
+  padding: 11px 18px;
+  border-radius: var(--r-ui);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 9;
+  max-width: 88vw;
+  text-align: center;
+}
+.toast.on {
+  opacity: 1;
+}
+
+/* ── 짧은 화면 ── 여백과 간격만 줄인다. 글자 크기는 건드리지 않는다 */
+@media (max-height: 700px) {
+  .stage {
+    padding-top: calc(env(safe-area-inset-top) + var(--s5));
+    padding-bottom: calc(env(safe-area-inset-bottom) + var(--s5));
+  }
+  .fan {
+    margin-top: var(--s7);
+  }
+  .btns {
+    margin-top: var(--s5);
+  }
+}
+@media (max-width: 560px) {
+  /* 카드 폭은 :root 에서 바꾼다. 결과 카드에만 걸면 버튼 줄이 따라 좁아지지 않는다 */
+  :root {
+    --card-w: min(94vw, 330px);
+  }
+  .intro-sub {
+    display: none;
+  }
+  .card {
+    width: 56px;
+    height: 90px;
+    margin-left: -28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
