@@ -299,7 +299,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
 
   return (
     <>
-      {/* 부적이 곧 버튼인 화면이라 이 버튼은 목소리를 낮춘다. 부채 밖에 두어 쓸기 판정에 안 걸린다 */}
+      {/* 카드가 곧 버튼인 화면이라 주연은 아니지만, 안 보이면 없는 기능이다 — 보조 버튼 규격으로 그린다. 부채 밖에 두어 쓸기 판정에 안 걸린다 */}
       <button type="button" className="shuffle" onClick={shuffle}>
         다시 섞기
       </button>
@@ -307,7 +307,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
         ref={rootRef}
         className="fan"
         role="group"
-        aria-label="부적 열다섯 장. 한 장을 눌러 뽑으세요"
+        aria-label="카드 열다섯 장. 한 장을 눌러 뽑으세요"
         onPointerDown={(e) => {
           if (drawnRef.current) return
           activeRef.current = nearest(e.clientX)
@@ -347,7 +347,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
             key={i}
             type="button"
             className="card"
-            aria-label={`부적 ${i + 1}번`}
+            aria-label={`카드 ${i + 1}번`}
             ref={(el) => {
               cardsRef.current[i] = el
             }}

@@ -154,7 +154,7 @@ export function App() {
     try {
       const how = await saveCard(luck, now)
       track('save_card', { method: how, luck_name: luck.name })
-      if (how === 'downloaded') say('부적이 저장됐어요!')
+      if (how === 'downloaded') say('카드가 저장됐어요!')
     } catch (e) {
       if ((e as Error)?.name === 'AbortError') return // 공유 시트를 그냥 닫은 경우
       say('저장이 안 됐어요. 스크린샷으로 남겨주세요!')
@@ -188,7 +188,7 @@ export function App() {
               <br />
               있는 운
             </h1>
-            <p className="intro-sub">마음 가는 부적 한 장을 눌러 뽑으세요</p>
+            <p className="intro-sub">마음 가는 카드 한 장을 눌러 뽑으세요</p>
             {friendChip}
             <Fan reduced={reduced} onDrawn={drawn} onShuffle={reshuffle} />
           </section>
@@ -200,7 +200,7 @@ export function App() {
                 친구에게 보내기
               </button>
               <button type="button" className="act" onClick={save} disabled={saving}>
-                {saving ? '부적 그리는 중…' : '부적 저장하기'}
+                {saving ? '카드 그리는 중…' : '카드 저장하기'}
               </button>
             </div>
             {/* 오늘은 이미 골랐다. 다시 뽑기를 두면 고른 것이 무의미해진다 */}
@@ -214,7 +214,7 @@ export function App() {
       {peek && friendLuck && (
         <div className="friend-view" role="dialog" aria-modal="true" onClick={() => setPeek(false)}>
           <div className="friend-box" onClick={(e) => e.stopPropagation()}>
-            <p className="friend-cap">친구가 뽑은 부적</p>
+            <p className="friend-cap">친구가 뽑은 카드</p>
             <Talisman luck={friendLuck} now={now} />
             <button type="button" className="act primary friend-close" onClick={() => setPeek(false)}>
               {luck ? '닫기' : '나도 뽑으러 가기'}

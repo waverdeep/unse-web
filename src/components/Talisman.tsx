@@ -38,7 +38,7 @@ export const Talisman = forwardRef<HTMLElement, Props>(function Talisman({ luck,
         <div className="seal" aria-hidden="true">{SEAL[luck.type] ?? '半'}</div>
 
         <div className="t-fine">
-          <span>본 부적의 효력은 오늘 자정까지입니다.</span>
+          <span>본 운의 효력은 오늘 자정까지입니다.</span>
           <span>{DOMAIN || `${LUCKS.length}종 중 1종`}</span>
         </div>
       </div>
