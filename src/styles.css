@@ -413,6 +413,58 @@ body {
   font-size: 12px;
 }
 
+/* ── 친구가 준 링크 ── 친구 카드는 구경거리다. 안내문의 목소리로 접어 두고, 열면 겹쳐 보여준다 */
+.friend-peek {
+  margin-top: var(--s4);
+  padding: 9px 16px;
+  border: 1.5px solid var(--dim-3);
+  background: transparent;
+  color: var(--dim);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  border-radius: var(--r-ui);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+@media (hover: hover) {
+  .friend-peek:hover {
+    color: var(--talis);
+    border-color: var(--dim);
+  }
+}
+.friend-view {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  background: rgba(14, 35, 33, 0.88);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--s6) var(--s5);
+  overflow-y: auto;
+}
+.friend-box {
+  margin: auto; /* 짧은 카드는 가운데, 긴 카드는 위부터 스크롤 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s4);
+  width: var(--card-w);
+}
+.friend-cap {
+  color: var(--dim);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+.friend-close {
+  width: 100%;
+  flex: 0 0 auto;
+}
+
 button:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;

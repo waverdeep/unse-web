@@ -51,6 +51,18 @@ export function App() {
     track('return_visit', { luck_id: id, luck_name: seen?.name ?? '' })
   }, [now])
 
+  // 친구가 보낸 링크에는 친구가 뽑은 운이 실려 있다. 내 뽑기는 그대로고, 친구 카드는 구경거리다
+  const friendLuck = useMemo(() => {
+    const f = new URLSearchParams(location.search).get('f')
+    if (!f) return null
+    return LUCKS.find((l) => l.id === Number(f)) ?? null
+  }, [])
+  const [peek, setPeek] = useState(false)
+
+  useEffect(() => {
+    if (friendLuck) track('friend_visit', { luck_id: friendLuck.id, luck_name: friendLuck.name })
+  }, [friendLuck])
+
   const drawn = useCallback(
     (index: number) => {
       const picked = deck[index]
@@ -113,10 +125,10 @@ export function App() {
 
   const share = useCallback(() => {
     if (!luck) return
-    // 받은 사람은 내 결과가 아니라 자기 결과를 받는다. 그래서 링크는 주소 하나뿐이다
-    const url = location.origin + location.pathname
+    // 받은 사람은 자기 결과를 뽑는다. 링크에 실린 내 운은 구경거리로만 보여준다
+    const url = `${location.origin}${location.pathname}?f=${luck.id}`
     // 카톡은 url 필드를 본문 앞에 공백 없이 이어붙여 링크가 뭉개진다. 주소는 본문 마지막 줄에 직접 넣는다
-    const text = `오늘 내 운은 「${luck.name}」이래.\n너는 뭐 나오나 봐봐.\n\n${url}`
+    const text = `오늘 제 운은 「${luck.name}」이래요.\n뭐가 나오는지 한번 뽑아보세요.\n\n${url}`
     if (navigator.share) {
       navigator.share({ text })
         .then(() => track('share', { method: 'sheet', luck_name: luck.name }))
@@ -151,6 +163,20 @@ export function App() {
     }
   }, [luck, now, say, saving])
 
+  // 두 화면(뽑기 전·후)에 똑같이 들어가는 구경 버튼
+  const friendChip = friendLuck && (
+    <button
+      type="button"
+      className="friend-peek"
+      onClick={() => {
+        setPeek(true)
+        track('friend_peek', { luck_name: friendLuck.name })
+      }}
+    >
+      친구가 뽑은 「{friendLuck.name}」 구경하기
+    </button>
+  )
+
   return (
     <>
       <main className="stage" ref={stageRef}>
@@ -163,6 +189,7 @@ export function App() {
               있는 운
             </h1>
             <p className="intro-sub">끌리는 한 장을 골라보세요</p>
+            {friendChip}
             <Fan reduced={reduced} onDrawn={drawn} onShuffle={reshuffle} />
           </section>
         ) : (
@@ -178,9 +205,23 @@ export function App() {
             </div>
             {/* 오늘은 이미 골랐다. 다시 뽑기를 두면 고른 것이 무의미해진다 */}
             <p className="closed">오늘 운은 여기까지! 내일 새로 뽑을 수 있어요.</p>
+            {friendChip}
           </section>
         )}
       </main>
+
+      {/* 친구 부적은 겹쳐 보여준다. 화면을 갈아치우면 내 뽑기 자리가 사라진 것처럼 보인다 */}
+      {peek && friendLuck && (
+        <div className="friend-view" role="dialog" aria-modal="true" onClick={() => setPeek(false)}>
+          <div className="friend-box" onClick={(e) => e.stopPropagation()}>
+            <p className="friend-cap">친구가 뽑은 부적</p>
+            <Talisman luck={friendLuck} now={now} />
+            <button type="button" className="act primary friend-close" onClick={() => setPeek(false)}>
+              {luck ? '닫기' : '나도 뽑으러 가기'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={`toast${toast ? ' on' : ''}`} role="status" aria-live="polite">
         {toast}
