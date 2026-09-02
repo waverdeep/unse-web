@@ -23,8 +23,7 @@ export const Talisman = forwardRef<HTMLElement, Props>(function Talisman({ luck,
         {/* 주문은 머리 장식 한 줄. 정보가 아니라 밀도라 읽히지 않아도 된다 */}
         <div className="t-spell" aria-hidden="true">{SPELL}</div>
         <div className="t-date">{formatDate(now)}</div>
-        <p className="t-lead">오늘 당신에게는</p>
-        {/* 카드에서 큰 것은 운 이름 하나뿐이다 */}
+        {/* 카드에서 큰 것은 운 이름 하나뿐이다. 리드 문구 없이 이름이 바로 받는다 */}
         <div className="t-name" style={{ fontSize: `${nameSize(luck.name.length)}px` }}>{luck.name}</div>
         <div className="t-rule" />
         <p className="t-prophecy">{luck.prophecy}</p>

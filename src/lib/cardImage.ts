@@ -100,8 +100,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   // 세로 배치를 먼저 계산해 카드 높이를 정한다
   const ySpell = BAND + 26
   const yDate = ySpell + 17
-  const yLead = yDate + 24
-  const yName = yLead + 16
+  const yName = yDate + 26
   const yRule = yName + nameFont * 1.06 + 15
   const yProphecy = yRule + 3 + 13
   const yAdvice = yProphecy + prophecy.length * 15.5 * 1.62 + 15
@@ -171,10 +170,6 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.fillStyle = p.ink
   ctx.font = `500 9.5px ${PLEX}`
   ctx.fillText(formatDate(now), cx, yDate)
-
-  ctx.globalAlpha = 0.75
-  ctx.font = `700 14px ${MYEONGJO}`
-  ctx.fillText('오늘 당신에게는', cx, yLead)
 
   // 카드에서 큰 것은 운 이름 하나뿐이다
   ctx.globalAlpha = 1
