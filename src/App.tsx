@@ -5,7 +5,6 @@ import { Fan } from './components/Fan'
 import { Talisman } from './components/Talisman'
 import { LUCKS } from './data/lucks'
 import { track } from './lib/analytics'
-import { BRAND } from './lib/brand'
 import { saveCard } from './lib/cardImage'
 import { DRAW, FAN, REVEAL } from './lib/spec'
 import { formatDate, readDrawn, readShuffle, todaysDeck, writeDrawn, writeShuffle } from './lib/seed'
@@ -116,16 +115,17 @@ export function App() {
     if (!luck) return
     // 받은 사람은 내 결과가 아니라 자기 결과를 받는다. 그래서 링크는 주소 하나뿐이다
     const url = location.origin + location.pathname
-    const text = `오늘 내 운은 「${luck.name}」이래.\n너는 뭐 나오나 봐봐.`
+    // 카톡은 url 필드를 본문 앞에 공백 없이 이어붙여 링크가 뭉개진다. 주소는 본문 마지막 줄에 직접 넣는다
+    const text = `오늘 내 운은 「${luck.name}」이래.\n너는 뭐 나오나 봐봐.\n\n${url}`
     if (navigator.share) {
-      navigator.share({ title: BRAND, text, url })
+      navigator.share({ text })
         .then(() => track('share', { method: 'sheet', luck_name: luck.name }))
         .catch(() => {})
       return
     }
     if (navigator.clipboard?.writeText) {
       navigator.clipboard
-        .writeText(`${text}\n${url}`)
+        .writeText(text)
         .then(() => {
           track('share', { method: 'clipboard', luck_name: luck.name })
           say('링크 복사 완료! 아무 데나 붙여넣어 보내세요.')
