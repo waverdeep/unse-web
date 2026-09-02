@@ -65,15 +65,25 @@ def ground() -> Image.Image:
 
 
 def talisman(w: int, h: int) -> Image.Image:
-    """부적 한 장. 표식은 왼쪽 띠 안에 둔다 — 부채에서 그 부분만 드러난다"""
-    card = Image.new("RGBA", (w, h), TALIS + (255,))
+    """부적 한 장의 뒷면. 시작 화면과 같은 능화판 격자 — 꽉 찬 금 도장에 붉은 運"""
+    card = Image.new("RGBA", (w, h), CINNABAR + (255,))
     d = ImageDraw.Draw(card)
-    d.line([(0, 0), (0, h)], fill=(36, 23, 8, 60))
-    d.line([(w - 1, 0), (w - 1, h)], fill=(255, 255, 255, 90))
-    r = round(w * 0.30)
-    cx, cy = round(w * 0.19), round(h * 0.11) + r // 2
-    d.ellipse([cx - r // 2, cy - r // 2, cx + r // 2, cy + r // 2], fill=CINNABAR)
-    d.text((cx, cy), "運", font=hanja(max(9, round(r * 0.72))), fill=TALIS, anchor="mm")
+    for off in range(-h, w + h, 6):  # 능화판 격자
+        d.line([(off, 0), (off + h, h)], fill=TALIS + (56,))
+        d.line([(off + h, 0), (off, h)], fill=TALIS + (56,))
+    m = 4  # 가장자리 민무늬 띠 + 금테
+    d.rectangle([0, 0, w - 1, m - 1], fill=CINNABAR)
+    d.rectangle([0, h - m, w - 1, h - 1], fill=CINNABAR)
+    d.rectangle([0, 0, m - 1, h - 1], fill=CINNABAR)
+    d.rectangle([w - m, 0, w - 1, h - 1], fill=CINNABAR)
+    d.rectangle([m, m, w - m - 1, h - m - 1], outline=TALIS + (178,), width=1)
+    d.line([(0, 0), (0, h)], fill=(0, 0, 0, 70))
+    d.line([(w - 1, 0), (w - 1, h)], fill=(255, 255, 255, 40))
+    cx, cy, r = w // 2, h // 2, round(w * 0.22)
+    d.ellipse([cx - r - 3, cy - r - 3, cx + r + 3, cy + r + 3], fill=CINNABAR)
+    d.ellipse([cx - r - 3, cy - r - 3, cx + r + 3, cy + r + 3], outline=TALIS + (178,), width=1)
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=TALIS)
+    d.text((cx, cy), "運", font=hanja(max(9, round(r * 1.1))), fill=CINNABAR, anchor="mm")
     return card
 
 
@@ -104,7 +114,7 @@ def main() -> None:
     f = font("ExtraBold", 78)
     for i, line in enumerate(TITLE):
         d.text((x0, 292 + i * 92), line, font=f, fill=TALIS + (255,), anchor="ls")
-    d.text((x0, 452), "부적 한 장을 고르세요", font=font("Bold", 26), fill=TALIS + (120,), anchor="ls")
+    d.text((x0, 452), "끌리는 한 장을 골라보세요", font=font("Bold", 26), fill=TALIS + (120,), anchor="ls")
 
     d.line([(x0, 496), (x0 + 300, 496)], fill=TALIS + (40,), width=2)
     d.text((x0, 536), DOMAIN, font=font("Bold", 24), fill=TALIS + (135,), anchor="ls")

@@ -9,13 +9,16 @@ import { formatDate, serialOf } from './seed'
  * 화면을 그대로 캡처하지 않고 새로 그리는 이유는 두 가지다.
  * 스크린샷은 기기 해상도에 따라 뭉개지고, 무엇보다 주소를 넣을 자리가 없다.
  * 퍼지는 것은 이 그림이므로 여기에 주소가 실려야 루프가 닫힌다.
+ *
+ * 레이아웃은 화면의 홍패(가운데 정렬 상장)와 같다. 화면 쪽을 고치면 여기도 고친다.
  */
 
 const S = 3 // 인스타·카톡에서 뭉개지지 않을 배율
 const W = 360 // 카드 폭 (CSS px)
 const M = 34 // 카드 바깥 여백
-const PAD = 26 // 본문 좌우 여백
 const BAND = 30
+const FRAME = 10 // 상장 틀의 카드 가장자리로부터의 여백
+const PAD = 29 // 본문 좌우 여백 (틀 여백 + 테두리 + 안쪽 패딩)
 
 const MYEONGJO = '"Nanum Myeongjo", "Bujeok Hanja", AppleMyungjo, Batang, "Noto Serif KR", serif'
 const PLEX = '"IBM Plex Sans KR", sans-serif'
@@ -37,26 +40,11 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number): string
   return lines
 }
 
-/** 세로 주문. 캔버스에는 writing-mode 가 없어 글자를 하나씩 쌓는다 */
-function drawSpell(ctx: CanvasRenderingContext2D, x: number, top: number, bottom: number, color: string) {
-  ctx.save()
-  ctx.globalAlpha = 0.3
-  ctx.fillStyle = color
-  ctx.font = `700 9px ${MYEONGJO}`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'top'
-  const stepY = 9 + 9 * 0.24
-  for (let y = top, i = 0; y < bottom; y += stepY, i++) {
-    ctx.fillText(SPELL[i % SPELL.length]!, x, y)
-  }
-  ctx.restore()
-}
-
 function drawSeal(ctx: CanvasRenderingContext2D, cx: number, cy: number, glyph: string, color: string) {
   ctx.save()
   ctx.globalAlpha = 0.55
   ctx.translate(cx, cy)
-  ctx.rotate((-11 * Math.PI) / 180)
+  ctx.rotate((-5 * Math.PI) / 180) // 화면 .seal 의 기울기와 같은 값
   ctx.strokeStyle = color
   ctx.lineWidth = 3
   ctx.strokeRect(-23, -23, 46, 46)
@@ -104,26 +92,19 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   measure.font = `700 15.5px ${MYEONGJO}`
   const prophecy = wrap(measure, luck.prophecy, inner)
   measure.font = `400 14px ${MYEONGJO}`
-  const advice = wrap(measure, luck.advice, inner - 13)
+  const advice = wrap(measure, luck.advice, inner)
 
   // 세로 배치를 먼저 계산해 카드 높이를 정한다
-  let y = BAND + 14
-  const yDate = y
-  y += 12
-  const yLead = y + 12
-  y = yLead + 14 + 2
-  const yName = y
-  y += nameFont * 1.06
-  const yRule = y + 13
-  y = yRule + 3 + 11
-  const yProphecy = y
-  y += prophecy.length * 15.5 * 1.62
-  const yAdvice = y + 12
-  y = yAdvice + advice.length * 14 * 1.6
-  const ySeal = y + 14
-  y = ySeal + 46
-  const yFine = y + 16
-  const cardH = yFine + 8 + 16 + 16
+  const ySpell = BAND + 26
+  const yDate = ySpell + 17
+  const yLead = yDate + 24
+  const yName = yLead + 16
+  const yRule = yName + nameFont * 1.06 + 13
+  const yProphecy = yRule + 3 + 11
+  const yAdvice = yProphecy + prophecy.length * 15.5 * 1.62 + 12
+  const ySeal = yAdvice + advice.length * 14 * 1.6 + 14
+  const yFine = ySeal + 46 + 16
+  const cardH = yFine + 50
 
   const canvas = document.createElement('canvas')
   canvas.width = (W + M * 2) * S
@@ -157,49 +138,73 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.font = `600 10px ${PLEX}`
   ctx.fillText(serialOf(luck.id), W - 13, 10)
 
-  drawSpell(ctx, 12, BAND + 2, cardH - 6, p.accent)
-  drawSpell(ctx, W - 12, BAND + 2, cardH - 6, p.accent)
+  // 상장 틀 · 두꺼운 바깥 선과 가는 안쪽 선
+  ctx.strokeStyle = p.accent
+  ctx.globalAlpha = 0.6
+  ctx.lineWidth = 2.5
+  ctx.strokeRect(FRAME + 1, BAND + FRAME + 1, W - FRAME * 2 - 2, cardH - BAND - FRAME * 2 - 2)
+  ctx.globalAlpha = 0.3
+  ctx.lineWidth = 1
+  ctx.strokeRect(FRAME + 7, BAND + FRAME + 7, W - FRAME * 2 - 14, cardH - BAND - FRAME * 2 - 14)
+  ctx.globalAlpha = 1
 
-  ctx.textAlign = 'left'
+  const cx = W / 2
+  ctx.textAlign = 'center'
+
+  // 주문 머리 장식 한 줄
+  ctx.save()
+  ctx.globalAlpha = 0.45
+  ctx.fillStyle = p.accent
+  ctx.font = `700 9px ${MYEONGJO}`
+  try {
+    ctx.letterSpacing = '3px' // 미지원 브라우저에서는 그냥 붙여 그린다
+  } catch {
+    // 무시
+  }
+  ctx.fillText(SPELL, cx + 1.5, ySpell)
+  ctx.restore()
 
   ctx.globalAlpha = 0.6
   ctx.fillStyle = p.ink
   ctx.font = `500 9.5px ${PLEX}`
-  ctx.fillText(formatDate(now), PAD, yDate)
+  ctx.fillText(formatDate(now), cx, yDate)
 
   ctx.globalAlpha = 0.75
   ctx.font = `700 14px ${MYEONGJO}`
-  ctx.fillText('오늘 당신에게는', PAD, yLead)
+  ctx.fillText('오늘 당신에게는', cx, yLead)
 
   // 카드에서 큰 것은 운 이름 하나뿐이다
   ctx.globalAlpha = 1
   ctx.fillStyle = p.accent
   ctx.font = `800 ${nameFont}px ${MYEONGJO}`
-  ctx.fillText(luck.name, PAD, yName)
+  ctx.fillText(luck.name, cx, yName)
 
   ctx.globalAlpha = 0.3
   ctx.fillStyle = p.ink
-  ctx.fillRect(PAD, yRule, inner, 3)
+  ctx.fillRect(cx - 22, yRule, 44, 3)
 
   ctx.globalAlpha = 1
   ctx.font = `700 15.5px ${MYEONGJO}`
-  prophecy.forEach((line, i) => ctx.fillText(line, PAD, yProphecy + i * 15.5 * 1.62))
+  prophecy.forEach((line, i) => ctx.fillText(line, cx, yProphecy + i * 15.5 * 1.62))
 
   ctx.globalAlpha = 0.85
   ctx.font = `400 14px ${MYEONGJO}`
-  advice.forEach((line, i) => ctx.fillText(line, PAD + 13, yAdvice + i * 14 * 1.6))
+  advice.forEach((line, i) => ctx.fillText(line, cx, yAdvice + i * 14 * 1.6))
+  // 조언을 여는 붉은 점 · 첫 줄 앞에 붙는다
+  const firstW = ctx.measureText(advice[0] ?? '').width
   ctx.globalAlpha = 1
   ctx.fillStyle = p.accent
   ctx.beginPath()
-  ctx.arc(PAD + 3, yAdvice + 9, 3, 0, Math.PI * 2)
+  ctx.arc(cx - firstW / 2 - 10, yAdvice + 8, 3, 0, Math.PI * 2)
   ctx.fill()
 
-  drawSeal(ctx, W - PAD - 23, ySeal + 23, SEAL[luck.type] ?? '半', p.accent)
+  drawSeal(ctx, cx, ySeal + 23, SEAL[luck.type] ?? '半', p.accent)
 
   ctx.globalAlpha = 0.55
   ctx.fillStyle = p.ink
   ctx.fillRect(PAD, yFine, inner, 1)
   ctx.font = `400 9.5px ${PLEX}`
+  ctx.textAlign = 'left'
   ctx.fillText('본 부적은 아무런 효력이 없습니다.', PAD, yFine + 8)
   ctx.textAlign = 'right'
   ctx.fillText(DOMAIN || '100종 중 1종', W - PAD, yFine + 8)

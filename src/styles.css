@@ -125,6 +125,8 @@ body {
   user-select: none;
   -webkit-touch-callout: none; /* 쓸다가 멈추면 복사 메뉴가 뜬다 */
 }
+/* 카드 뒷면. 뽑기 전에는 붉은 뒷면만 보이고, 결과 부적이 앞면이다.
+   옛 책 표지의 능화판 격자 위에 꽉 찬 금 도장 — 놀이 카드의 문법이다 */
 .card {
   position: absolute;
   left: 50%;
@@ -134,13 +136,16 @@ body {
   margin-left: calc(var(--cw) / -2);
   padding: 0;
   border: 0;
-  background: var(--talis);
+  background-color: var(--cinnabar);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(240, 201, 63, 0.26) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(-45deg, rgba(240, 201, 63, 0.26) 0 1px, transparent 1px 6px);
   border-radius: var(--r-paper);
   transform-origin: 50% 313%;
   will-change: transform;
   cursor: pointer;
 }
-/* 같은 노란 면이 겹치면 한 덩어리로 보인다. 갈라놓는 건 색이 아니라 모서리와 그림자다 */
+/* 같은 붉은 면이 겹치면 한 덩어리로 보인다. 갈라놓는 건 색이 아니라 모서리와 그림자다 */
 .card::after {
   content: '';
   position: absolute;
@@ -148,48 +153,65 @@ body {
   border-radius: inherit;
   pointer-events: none;
   box-shadow:
-    inset 1px 0 0 rgba(36, 23, 8, 0.2),
-    inset -1px 0 0 rgba(255, 255, 255, 0.32);
+    inset 1px 0 0 rgba(0, 0, 0, 0.28),
+    inset -1px 0 0 rgba(255, 255, 255, 0.16);
 }
-/* 표식은 보이는 띠 안에 들어와야 한다.
-   카드가 왼쪽부터 쌓여 드러나는 곳은 각 장의 왼쪽 38% 뿐이라,
-   가로 가운데 두면 맨 앞 한 장에서만 온전히 보이고 나머지는 초승달로 잘린다 */
+/* 격자를 가장자리에서 끊고 금테 한 겹으로 두른다.
+   겹친 장은 왼쪽의 민무늬 띠 + 금선이 드러나 켜켜이 쌓인 리듬이 된다 */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 4px var(--cinnabar),
+    inset 0 0 0 5px rgba(240, 201, 63, 0.7);
+}
+/* 뒷면 도장. 겹치면 옆 장의 도장과 이어져 엽전 줄이 된다 */
 .card i {
   position: absolute;
-  left: 19%;
-  top: 11%;
-  transform: translateX(-50%);
-  width: calc(var(--cw) * 0.3);
-  height: calc(var(--cw) * 0.3);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(var(--cw) * 0.44);
+  height: calc(var(--cw) * 0.44);
   border-radius: 50%;
-  background: var(--cinnabar);
-  color: var(--talis);
+  background: var(--talis);
+  color: var(--cinnabar);
   font-style: normal;
   font-weight: 800;
-  font-size: calc(var(--cw) * 0.17);
+  font-size: calc(var(--cw) * 0.2);
   line-height: 1;
   display: grid;
   place-items: center;
+  box-shadow:
+    0 0 0 2px var(--cinnabar),
+    0 0 0 3px rgba(240, 201, 63, 0.7);
 }
 
-/* ── 결과 화면 ── */
+/* ── 결과 화면 ── 홍패. 상장처럼 두꺼운 틀에 가운데 정렬 — 운을 수여받는 문서다 */
 .talisman {
+  --accent: var(--cinnabar); /* 판정색. 틀·이름·점·도장이 전부 여기서 나온다 */
+  --paper: var(--talis);
   width: var(--card-w);
-  background: var(--talis);
+  background: var(--paper);
   color: var(--soot);
   position: relative;
   border-radius: var(--r-paper);
   box-shadow: var(--drop);
   overflow: hidden;
-  text-align: left;
+  text-align: center;
   transform-origin: 50% 50%;
 }
 .talisman[data-type='bad'] {
-  background: var(--cinnabar);
+  --accent: var(--talis);
+  --paper: var(--cinnabar);
   color: var(--talis);
 }
 .talisman[data-type='ambiguous'] {
-  background: var(--bone);
+  --accent: #a8321f;
+  --paper: var(--bone);
   color: #3a2e18;
 }
 
@@ -218,38 +240,24 @@ body {
   color: var(--bone);
 }
 
-.v-strip {
-  position: absolute;
-  top: 32px;
-  bottom: 0;
-  width: 14px;
-  writing-mode: vertical-rl;
-  font-weight: 700;
-  font-size: 9px;
-  letter-spacing: 0.24em;
-  color: var(--cinnabar);
-  opacity: 0.3;
-  overflow: hidden;
-  user-select: none;
-  pointer-events: none;
-}
-.v-left {
-  left: 5px;
-}
-.v-right {
-  right: 5px;
-}
-.talisman[data-type='bad'] .v-strip {
-  color: var(--talis);
-  opacity: 0.32;
-}
-.talisman[data-type='ambiguous'] .v-strip {
-  color: #a8321f;
-  opacity: 0.3;
-}
-
+/* 상장 틀. 두꺼운 바깥 선과 가는 안쪽 선 — 뒷면 금테와 같은 문법이다 */
 .t-body {
-  padding: 14px 26px 16px;
+  margin: 10px;
+  padding: 14px 16px;
+  border: 2.5px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow:
+    inset 0 0 0 4px var(--paper),
+    inset 0 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+/* 주문은 세로 띠 대신 머리 장식 한 줄로 남긴다. 읽히지 않아도 된다 */
+.t-spell {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em; /* letter-spacing 이 마지막 글자 뒤에도 붙어 중심이 왼쪽으로 쏠린다 */
+  color: var(--accent);
+  opacity: 0.45;
+  margin-bottom: 8px;
 }
 .t-date {
   font-family: 'IBM Plex Sans KR', sans-serif;
@@ -269,20 +277,15 @@ body {
   line-height: 1.06;
   letter-spacing: -0.03em;
   margin-top: 2px;
-  color: var(--cinnabar);
+  color: var(--accent);
   word-break: keep-all;
 }
-.talisman[data-type='bad'] .t-name {
-  color: var(--talis);
-}
-.talisman[data-type='ambiguous'] .t-name {
-  color: #a8321f;
-}
 .t-rule {
+  width: 44px;
   height: 3px;
   background: currentColor;
   opacity: 0.3;
-  margin: 13px 0 11px;
+  margin: 13px auto 11px;
 }
 .t-prophecy {
   font-size: 15.5px;
@@ -297,49 +300,34 @@ body {
   line-height: 1.6;
   opacity: 0.85;
   word-break: keep-all;
-  text-indent: -13px;
-  padding-left: 13px;
 }
 .dot {
   display: inline-block;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--cinnabar);
+  background: var(--accent);
   margin-right: 7px;
   vertical-align: middle;
   position: relative;
   top: -2px;
 }
-.talisman[data-type='bad'] .dot {
-  background: var(--talis);
-}
-.talisman[data-type='ambiguous'] .dot {
-  background: #a8321f;
-}
 
-/* 도장은 흐름 안에 둔다. absolute 로 고정하면 두 줄짜리 조언 위에 얹힌다 */
+/* 도장은 흐름 안에, 가운데에. 수여 문서의 직인 자리다 */
 .seal {
-  margin: 14px 0 0 auto;
+  margin: 14px auto 0;
   width: 46px;
   height: 46px;
-  border: 3px solid var(--cinnabar);
-  color: var(--cinnabar);
+  border: 3px solid var(--accent);
+  color: var(--accent);
   border-radius: var(--r-seal);
   display: grid;
   place-items: center;
   font-weight: 800;
   font-size: 22px;
-  transform: rotate(-11deg);
+  /* 인쇄가 아니라 찍힌 것. 가운데 정렬 축이라 크게 기울면 흐트러진다 */
+  transform: rotate(-5deg);
   opacity: 0.55;
-}
-.talisman[data-type='bad'] .seal {
-  border-color: var(--talis);
-  color: var(--talis);
-}
-.talisman[data-type='ambiguous'] .seal {
-  border-color: #a8321f;
-  color: #a8321f;
 }
 
 .t-fine {
@@ -405,19 +393,6 @@ body {
   font-size: 12px;
 }
 
-.ghost {
-  background: none;
-  border: 0;
-  color: var(--dim-2);
-  font-family: 'IBM Plex Sans KR', sans-serif;
-  font-size: 12px;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  padding: var(--s3) var(--s2);
-  flex: 1 0 100%;
-  margin-top: var(--s1);
-}
 button:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;

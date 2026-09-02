@@ -3,7 +3,7 @@ import type { Luck } from '../types'
 // 하루 고정이 이 제품의 기둥이다.
 // 같은 날 새로고침해서 다른 결과가 나오면 "운세"라는 프레임이 즉시 붕괴한다.
 //
-// 다만 고정되는 것은 "결과"가 아니라 "오늘 당신 앞에 놓인 열세 장"이다.
+// 다만 고정되는 것은 "결과"가 아니라 "오늘 당신 앞에 놓인 열일곱 장"이다.
 // 그중 무엇을 집을지는 손이 정하고, 한 번 집으면 그날은 잠긴다.
 
 const DEVICE_KEY = 'unse.deviceId'
@@ -63,7 +63,7 @@ function seeded(seed: number): () => number {
 
 /**
  * 오늘 이 기기 앞에 놓이는 패.
- * 날짜와 기기로만 정해지므로 새로고침해도 같은 열세 장이 나온다.
+ * 날짜와 기기로만 정해지므로 새로고침해도 같은 열일곱 장이 나온다.
  */
 export function todaysDeck(lucks: readonly Luck[], now: Date, size: number): Luck[] {
   const rnd = seeded(fnv1a(`${dateKey(now)}|${deviceId()}`))

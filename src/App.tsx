@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { Fan } from './components/Fan'
 import { Talisman } from './components/Talisman'
 import { LUCKS } from './data/lucks'
 import { BRAND } from './lib/brand'
 import { saveCard } from './lib/cardImage'
-import { BEAT, FAN } from './lib/spec'
+import { DRAW, FAN, REVEAL } from './lib/spec'
 import { formatDate, readDrawn, todaysDeck, writeDrawn } from './lib/seed'
 import { useReducedMotion } from './lib/useReducedMotion'
 import type { Luck } from './types'
+
+gsap.registerPlugin(useGSAP)
 
 const TOAST_MS = 2600
 
@@ -15,6 +19,7 @@ export function App() {
   const reduced = useReducedMotion()
   const [toast, setToast] = useState('')
   const [saving, setSaving] = useState(false)
+  const stageRef = useRef<HTMLElement>(null)
   const cardRef = useRef<HTMLElement>(null)
   const toastTimer = useRef<number | undefined>(undefined)
 
@@ -47,37 +52,57 @@ export function App() {
     [deck, now],
   )
 
-  // 결과 · 반대쪽에서 펼쳐지며 나타난다
-  useLayoutEffect(() => {
-    const el = cardRef.current
-    if (!luck || !el) return
-    if (reduced) {
-      el.style.opacity = '1'
-      return
-    }
-    el.style.transition = 'none'
-    el.style.transform = `rotateY(${BEAT.revealFrom}deg) scale(1.04)`
-    el.style.opacity = '0'
-    let raf2 = 0
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => {
-        el.style.transition =
-          `transform ${BEAT.revealMs}ms ${BEAT.ease}, opacity ${BEAT.revealMs}ms ${BEAT.ease}`
-        el.style.transform = 'rotateY(0deg) scale(1)'
-        el.style.opacity = '1'
-      })
-    })
-    return () => {
-      cancelAnimationFrame(raf1)
-      cancelAnimationFrame(raf2)
-    }
-  }, [luck, reduced])
+  // 결과 · 부적이 반대쪽에서 돌아 나오고, 도장이 쿵 찍히고, 버튼이 따라온다
+  useGSAP(
+    () => {
+      const card = cardRef.current
+      if (!luck || !card) return
+      if (reduced) {
+        gsap.set(card, { opacity: 1 })
+        return
+      }
+      gsap
+        .timeline()
+        .fromTo(
+          card,
+          { rotationY: REVEAL.fromDeg, scale: 1.04, opacity: 0, transformPerspective: DRAW.perspective },
+          {
+            rotationY: 0,
+            scale: 1,
+            opacity: 1,
+            duration: REVEAL.cardS,
+            ease: REVEAL.cardEase,
+          },
+        )
+        // 도장은 떨어지는 물건이다. 비스듬히 커진 채 나타나 기울며 내리찍히고, 카드가 살짝 눌린다
+        .fromTo(
+          '.seal',
+          { scale: REVEAL.stampFrom, opacity: 0, rotation: REVEAL.stampFromDeg },
+          {
+            scale: 1,
+            opacity: 0.55,
+            rotation: REVEAL.stampToDeg,
+            duration: REVEAL.stampS,
+            ease: REVEAL.stampEase,
+          },
+          '-=0.06',
+        )
+        .to(card, { y: REVEAL.thumpY, duration: 0.06, yoyo: true, repeat: 1, ease: 'power1.inOut' })
+        .fromTo(
+          ['.btns', '.closed'],
+          { y: 14, opacity: 0 },
+          { y: 0, opacity: 1, duration: REVEAL.tailS, stagger: REVEAL.tailStaggerS, ease: 'power2.out' },
+          '-=0.04',
+        )
+    },
+    { scope: stageRef, dependencies: [luck, reduced] },
+  )
 
   const share = useCallback(() => {
     if (!luck) return
     // 받은 사람은 내 결과가 아니라 자기 결과를 받는다. 그래서 링크는 주소 하나뿐이다
     const url = location.origin + location.pathname
-    const text = `오늘 나에게 있는 운은 「${luck.name}」입니다.\n당신 것도 뽑아보세요.`
+    const text = `오늘 내 운은 「${luck.name}」이래.\n너는 뭐 나오나 봐봐.`
     if (navigator.share) {
       navigator.share({ title: BRAND, text, url }).catch(() => {})
       return
@@ -85,11 +110,11 @@ export function App() {
     if (navigator.clipboard?.writeText) {
       navigator.clipboard
         .writeText(`${text}\n${url}`)
-        .then(() => say('링크를 복사했습니다. 붙여넣어 보내세요.'))
-        .catch(() => say('주소창의 링크를 복사해 보내세요.'))
+        .then(() => say('링크 복사 완료! 아무 데나 붙여넣어 보내세요.'))
+        .catch(() => say('주소창의 링크를 복사해서 보내주세요.'))
       return
     }
-    say('주소창의 링크를 복사해 보내세요.')
+    say('주소창의 링크를 복사해서 보내주세요.')
   }, [luck, say])
 
   const save = useCallback(async () => {
@@ -97,10 +122,10 @@ export function App() {
     setSaving(true)
     try {
       const how = await saveCard(luck, now)
-      if (how === 'downloaded') say('부적을 저장했습니다.')
+      if (how === 'downloaded') say('부적이 저장됐어요!')
     } catch (e) {
       if ((e as Error)?.name === 'AbortError') return // 공유 시트를 그냥 닫은 경우
-      say('저장하지 못했습니다. 스크린샷으로 남겨주세요.')
+      say('저장이 안 됐어요. 스크린샷으로 남겨주세요!')
     } finally {
       setSaving(false)
     }
@@ -108,7 +133,7 @@ export function App() {
 
   return (
     <>
-      <main className="stage">
+      <main className="stage" ref={stageRef}>
         {!luck ? (
           <section className="intro">
             <div className="intro-date">{formatDate(now)}</div>
@@ -117,7 +142,7 @@ export function App() {
               <br />
               있는 운
             </h1>
-            <p className="intro-sub">한 장을 고르세요</p>
+            <p className="intro-sub">끌리는 한 장을 골라보세요</p>
             <Fan reduced={reduced} onDrawn={drawn} />
           </section>
         ) : (
@@ -128,11 +153,11 @@ export function App() {
                 친구에게 보내기
               </button>
               <button type="button" className="act" onClick={save} disabled={saving}>
-                {saving ? '부적 그리는 중' : '부적 저장하기'}
+                {saving ? '부적 그리는 중…' : '부적 저장하기'}
               </button>
             </div>
             {/* 오늘은 이미 골랐다. 다시 뽑기를 두면 고른 것이 무의미해진다 */}
-            <p className="closed">오늘 몫은 여기까지입니다. 내일 다시 열립니다.</p>
+            <p className="closed">오늘 운은 여기까지! 내일 새로 뽑을 수 있어요.</p>
           </section>
         )}
       </main>
