@@ -14,7 +14,7 @@ interface Props {
 }
 
 /**
- * 부적 열한 장. 뒷면이 보이는 채로 덱에서 촤라락 펼쳐진다.
+ * 부적 열다섯 장. 뒷면이 보이는 채로 덱에서 촤라락 펼쳐진다.
  *
  * 쓸어 넘기는 동안 카드마다 transform 을 초당 수십 번 고쳐야 해서
  * 상태로 관리하지 않고 GSAP 으로 DOM 을 직접 만진다. React 는 카드를 만드는 데까지만 쓴다.
@@ -307,7 +307,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
         ref={rootRef}
         className="fan"
         role="group"
-        aria-label="부적 열한 장. 한 장을 눌러 뽑으세요"
+        aria-label="부적 열다섯 장. 한 장을 눌러 뽑으세요"
         onPointerDown={(e) => {
           if (drawnRef.current) return
           activeRef.current = nearest(e.clientX)
