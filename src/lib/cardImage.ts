@@ -219,7 +219,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.textAlign = 'left'
   ctx.fillText('본 운의 효력은 오늘 자정까지입니다.', PAD, yFine + 8)
   ctx.textAlign = 'right'
-  ctx.fillText(DOMAIN || '120종 중 1종', W - PAD, yFine + 8)
+  ctx.fillText(DOMAIN || '100종 중 1종', W - PAD, yFine + 8)
 
   ctx.restore()
 
