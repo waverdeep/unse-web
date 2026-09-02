@@ -25,9 +25,6 @@ export function Fan({ onDrawn, reduced }: Props) {
   const dealtRef = useRef(false)
   const activeRef = useRef<number | null>(null)
   const lastHoverRef = useRef<number | null | undefined>(undefined)
-  // 장마다 하나씩 붙는 재타깃 트윈. 손을 따라 목표만 갈아끼우므로 끊기지 않는다
-  const yToRef = useRef<((v: number) => void)[]>([])
-  const sToRef = useRef<((v: number) => void)[]>([])
 
   const angle = (i: number) => (i - FAN.mid) * FAN.step
 
@@ -38,22 +35,6 @@ export function Fan({ onDrawn, reduced }: Props) {
       const cards = cardsRef.current.filter((el): el is HTMLButtonElement => el !== null)
       cards.forEach((el, i) => {
         el.style.zIndex = String(i)
-      })
-
-      // 쓸어 넘기기용 재타깃 트윈. 그림자는 실제 들림(y)을 따라간다
-      cardsRef.current.forEach((el, i) => {
-        if (!el) return
-        yToRef.current[i] = gsap.quickTo(el, 'y', {
-          duration: reduced ? 0 : FAN.hoverS,
-          ease: FAN.hoverEase,
-          onUpdate: () => {
-            el.style.boxShadow = shadowFor(Math.max(0, -(gsap.getProperty(el, 'y') as number)))
-          },
-        })
-        sToRef.current[i] = gsap.quickTo(el, 'scale', {
-          duration: reduced ? 0 : FAN.hoverS,
-          ease: FAN.hoverEase,
-        })
       })
 
       if (reduced) {
@@ -115,20 +96,39 @@ export function Fan({ onDrawn, reduced }: Props) {
     return best
   }, [])
 
-  /** 물결의 모양은 감쇠 곡선이, 이동은 손이, 잔상은 전환의 꼬리가 만든다 */
-  const hover = useCallback((idx: number | null) => {
-    if (drawnRef.current || !dealtRef.current) return
-    if (idx === lastHoverRef.current) return // 같은 장 위에서는 다시 겨누지 않는다
-    lastHoverRef.current = idx
-    cardsRef.current.forEach((el, i) => {
-      if (!el) return
-      const lift = idx === null ? 0 : Math.max(0, FAN.lift - FAN.falloff * Math.abs(i - idx))
-      // 손가락 아래 장만 맨 위로 올리고 나머지 쌓임 순서는 고정한다. 이웃끼리 순서가 바뀌면 겹침이 흔들린다
-      el.style.zIndex = String(i === idx ? 100 : i)
-      yToRef.current[i]?.(-lift)
-      sToRef.current[i]?.(1 + FAN.grow * (lift / FAN.lift))
-    })
-  }, [])
+  /**
+   * 물결의 모양은 감쇠 곡선이, 이동은 손이, 잔상은 느린 내리막이 만든다.
+   * 손 아래로 들어오는 장은 경쾌하게 솟고, 벗어난 장은 천천히 가라앉는다.
+   * 이웃들은 바깥으로 살짝 벌어지며 비켜난다 — 종이 사이를 비집는 질감.
+   */
+  const hover = useCallback(
+    (idx: number | null) => {
+      if (drawnRef.current || !dealtRef.current) return
+      if (idx === lastHoverRef.current) return // 같은 장 위에서는 다시 겨누지 않는다
+      lastHoverRef.current = idx
+      cardsRef.current.forEach((el, i) => {
+        if (!el) return
+        const d = idx === null ? Infinity : Math.abs(i - idx)
+        const lift = idx === null ? 0 : Math.max(0, FAN.lift - FAN.falloff * d)
+        const away = idx === null ? 0 : Math.sign(i - idx)
+        const lean = away * FAN.lean * Math.max(0, 1 - d / FAN.leanSpan)
+        // 손가락 아래 장만 맨 위로 올리고 나머지 쌓임 순서는 고정한다. 이웃끼리 순서가 바뀌면 겹침이 흔들린다
+        el.style.zIndex = String(i === idx ? 100 : i)
+        const rising = lift > -(gsap.getProperty(el, 'y') as number)
+        gsap.to(el, {
+          y: -lift,
+          scale: 1 + FAN.grow * (lift / FAN.lift),
+          rotation: angle(i) + lean,
+          boxShadow: shadowFor(lift),
+          duration: reduced ? 0 : rising ? FAN.riseS : FAN.fallS,
+          ease: rising ? FAN.riseEase : FAN.fallEase,
+          transformOrigin: FAN.origin,
+          overwrite: true,
+        })
+      })
+    },
+    [reduced],
+  )
 
   const draw = useCallback(
     (idx: number) => {
