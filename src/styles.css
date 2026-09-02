@@ -1,7 +1,7 @@
 /* 운뽑 — design-system-v1.html 의 규칙을 그대로 옮긴 곳 */
 
 /* 나눔명조에는 한자가 한 글자도 없다.
-   그대로 두면 運·急急如律令·吉凶半 이 기기마다 다른 서체로 떨어지고,
+   그대로 두면 運·急急如律令·도장 글자(大吉 吉 小吉 平 注意)가 기기마다 다른 서체로 떨어지고,
    안드로이드에서는 명조 옆에 고딕이 섞인다.
    여덟 글자만 잘라낸 2KB 짜리 명조를 직접 물린다.
    scripts/make-hanja-font.py 로 다시 만든다 */
@@ -237,12 +237,12 @@ body {
   text-align: center;
   transform-origin: 50% 50%;
 }
-.talisman[data-type='bad'] {
+.talisman[data-type='caution'] {
   --accent: var(--talis);
   --paper: var(--cinnabar);
   color: var(--talis);
 }
-.talisman[data-type='ambiguous'] {
+.talisman[data-type='soso'] {
   --accent: #a8321f;
   --paper: var(--bone);
   color: #3a2e18;
@@ -265,10 +265,10 @@ body {
   font-weight: 800;
   font-size: 12px;
 }
-.talisman[data-type='bad'] .t-band {
+.talisman[data-type='caution'] .t-band {
   background: var(--soot);
 }
-.talisman[data-type='ambiguous'] .t-band {
+.talisman[data-type='soso'] .t-band {
   background: #3a2e18;
   color: var(--bone);
 }
@@ -358,9 +358,16 @@ body {
   border-radius: var(--r-seal);
   display: grid;
   place-items: center;
+  align-content: center;
   font-weight: 800;
   font-size: 22px;
+  line-height: 1;
   opacity: 0.55;
+}
+/* 大吉·小吉·注意 는 두 글자를 위아래로 쌓는다. 옛 도장의 세로 배열 */
+.seal[data-len='2'] {
+  font-size: 15px;
+  line-height: 1.07;
 }
 
 .t-fine {

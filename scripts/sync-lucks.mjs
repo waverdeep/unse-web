@@ -27,7 +27,7 @@ const raw = readFileSync(SRC, 'utf8')
 const lucks = JSON.parse(raw)
 
 const KEYS = ['id', 'name', 'prophecy', 'advice', 'type']
-const TYPES = new Set(['good', 'bad', 'ambiguous'])
+const TYPES = new Set(['great', 'good', 'small', 'soso', 'caution'])
 const fail = (msg) => {
   console.error(`원본이 어긋났습니다: ${msg}`)
   process.exit(1)
@@ -42,7 +42,7 @@ lucks.forEach((x, i) => {
   for (const k of ['name', 'prophecy']) {
     if (typeof x[k] !== 'string' || !x[k].trim()) fail(`${x.id}번 ${k} 가 비어 있습니다`)
   }
-  // 조언은 2~3개의 목록이다. 나쁜 운은 타개·처방 형태로 쓴다
+  // 조언은 2~3개의 목록이다. 조심 운은 예방·대처가 들어가야 한다
   if (!Array.isArray(x.advice) || x.advice.length < 2 || x.advice.length > 3) {
     fail(`${x.id}번 advice 가 2~3개의 배열이 아닙니다`)
   }

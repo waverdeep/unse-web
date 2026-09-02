@@ -48,10 +48,17 @@ function drawSeal(ctx: CanvasRenderingContext2D, cx: number, cy: number, glyph: 
   ctx.lineWidth = 3
   ctx.strokeRect(-23, -23, 46, 46)
   ctx.fillStyle = color
-  ctx.font = `800 22px ${MYEONGJO}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(glyph, 0, 1)
+  if (glyph.length === 2) {
+    // 두 글자는 위아래로 쌓는다. 화면의 .seal[data-len='2'] 와 같은 크기·간격
+    ctx.font = `800 15px ${MYEONGJO}`
+    ctx.fillText(glyph[0]!, 0, -7)
+    ctx.fillText(glyph[1]!, 0, 9)
+  } else {
+    ctx.font = `800 22px ${MYEONGJO}`
+    ctx.fillText(glyph, 0, 1)
+  }
   ctx.restore()
 }
 
@@ -62,6 +69,7 @@ async function ensureFonts(nameFont: number): Promise<void> {
     `700 15.5px ${MYEONGJO}`,
     `700 9px ${MYEONGJO}`,
     `800 22px ${MYEONGJO}`,
+    `800 15px ${MYEONGJO}`,
     `400 14px ${MYEONGJO}`,
     `500 10px ${PLEX}`,
     `600 10px ${PLEX}`,
@@ -70,7 +78,7 @@ async function ensureFonts(nameFont: number): Promise<void> {
     // 한자는 별도 서체라 따로 불러야 한다. 안 부르면 캔버스에 네모로 찍힌다
     await Promise.all([
       ...wanted.map((f) => document.fonts.load(f, '가나다')),
-      document.fonts.load(`700 22px "Bujeok Hanja"`, '運急如律令吉凶半'),
+      document.fonts.load(`700 22px "Bujeok Hanja"`, '運急如律令大吉小平注意'),
       document.fonts.load(`700 9px "Bujeok Hanja"`, '急如律令'),
     ])
     await document.fonts.ready
@@ -202,7 +210,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   }
   ctx.globalAlpha = 1
 
-  drawSeal(ctx, W - PAD - 23, ySeal + 23, SEAL[luck.type] ?? '半', p.accent)
+  drawSeal(ctx, W - PAD - 23, ySeal + 23, SEAL[luck.type] ?? '平', p.accent)
 
   ctx.globalAlpha = 0.55
   ctx.fillStyle = p.ink
@@ -211,7 +219,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.textAlign = 'left'
   ctx.fillText('본 운의 효력은 오늘 자정까지입니다.', PAD, yFine + 8)
   ctx.textAlign = 'right'
-  ctx.fillText(DOMAIN || '100종 중 1종', W - PAD, yFine + 8)
+  ctx.fillText(DOMAIN || '120종 중 1종', W - PAD, yFine + 8)
 
   ctx.restore()
 

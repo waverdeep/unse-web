@@ -12,6 +12,7 @@ interface Props {
 
 /** 부적 한 장. 색이 판정을 대신 말한다. */
 export const Talisman = forwardRef<HTMLElement, Props>(function Talisman({ luck, now }, ref) {
+  const seal = SEAL[luck.type] ?? '平'
   return (
     <article className="talisman" data-type={luck.type} ref={ref}>
       <div className="t-band">
@@ -35,7 +36,11 @@ export const Talisman = forwardRef<HTMLElement, Props>(function Talisman({ luck,
         ))}
 
         {/* 도장은 흐름 안에 둔다. absolute 로 고정하면 두 줄짜리 조언 위에 얹힌다 */}
-        <div className="seal" aria-hidden="true">{SEAL[luck.type] ?? '半'}</div>
+        <div className="seal" data-len={seal.length} aria-hidden="true">
+          {[...seal].map((ch, i) => (
+            <span key={i}>{ch}</span>
+          ))}
+        </div>
 
         <div className="t-fine">
           <span>본 운의 효력은 오늘 자정까지입니다.</span>

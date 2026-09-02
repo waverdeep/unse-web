@@ -65,8 +65,8 @@ Worker 이름은 `wrangler.jsonc` 의 `name` 과 같아야 한다.
 python3 -m pip install pillow fonttools brotli
 
 python3 scripts/make-og.py          # public/og.png · 링크 미리보기
-python3 scripts/make-hanja-font.py  # public/hanja.woff2 · 한자 여덟 자
+python3 scripts/make-hanja-font.py  # public/hanja.woff2 · 한자 열한 자
 ```
 
-`hanja.woff2` 는 運·急如律令·吉凶半 만 담은 2KB 짜리 명조다.
+`hanja.woff2` 는 運·急如律令·도장 글자(大吉 吉 小吉 平 注意)만 담은 3KB 짜리 명조다.
 나눔명조에 한자가 한 글자도 없어서, 없으면 안드로이드에서 명조 옆에 고딕이 섞인다.

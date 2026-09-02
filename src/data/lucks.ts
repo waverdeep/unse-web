@@ -3,7 +3,7 @@
 import raw from './lucks.json'
 import type { Luck, LuckType } from '../types'
 
-const TYPES: readonly string[] = ['good', 'bad', 'ambiguous']
+const TYPES: readonly string[] = ['great', 'good', 'small', 'soso', 'caution']
 
 function assertLuck(x: unknown, i: number): Luck {
   const o = x as Record<string, unknown>

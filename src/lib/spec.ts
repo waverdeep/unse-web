@@ -106,7 +106,8 @@ export const REVEAL = {
 
 export const SPELL = '急急如律令'
 
-export const SEAL: Record<string, string> = { good: '吉', bad: '凶', ambiguous: '半' }
+// 도장은 다섯 단계. 두 글자 도장은 위아래로 쌓는다 — 화면(.seal span)과 캔버스(drawSeal)가 같은 규칙이다
+export const SEAL: Record<string, string> = { great: '大吉', good: '吉', small: '小吉', soso: '平', caution: '注意' }
 
 // 종이가 떠오르면 그림자도 멀어지고 흐려진다. 고정하면 위로 이동한 것처럼 보인다.
 export function shadowFor(lift: number): string {
@@ -122,6 +123,7 @@ export function nameSize(len: number): number {
 }
 
 // 결과 부적의 판정 색. 화면과 저장 이미지가 같은 값을 쓴다.
+// 종이는 세 가지뿐이다 — 좋음 세 단계는 같은 금색 종이를 쓰고 도장 글자로만 갈린다.
 export interface Palette {
   paper: string
   ink: string
@@ -131,10 +133,10 @@ export interface Palette {
 }
 
 export function paletteOf(type: string): Palette {
-  if (type === 'bad') {
+  if (type === 'caution') {
     return { paper: '#B32B1E', ink: '#F0C93F', band: '#241708', bandInk: '#F0C93F', accent: '#F0C93F' }
   }
-  if (type === 'ambiguous') {
+  if (type === 'soso') {
     return { paper: '#DDD3B6', ink: '#3A2E18', band: '#3A2E18', bandInk: '#DDD3B6', accent: '#A8321F' }
   }
   return { paper: '#F0C93F', ink: '#241708', band: '#B32B1E', bandInk: '#F0C93F', accent: '#B32B1E' }

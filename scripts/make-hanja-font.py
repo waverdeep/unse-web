@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""부적에 쓰는 한자 여덟 자만 담은 폰트를 만든다 → public/hanja.woff2
+"""부적에 쓰는 한자 열한 자만 담은 폰트를 만든다 → public/hanja.woff2
 
-나눔명조에는 한자가 한 글자도 없다. 그대로 두면 運·急急如律令·吉凶半 이
+나눔명조에는 한자가 한 글자도 없다. 그대로 두면 運·急急如律令·도장 글자가
 기기마다 다른 서체로 떨어지고, 안드로이드에서는 명조 옆에 고딕이 섞인다.
 
     python3 -m pip install fonttools brotli
@@ -12,7 +12,7 @@ from fontTools import subset
 from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
-GLYPHS = "運急如律令吉凶半"  # 표식 · 세로 주문 · 도장
+GLYPHS = "運急如律令大吉小平注意"  # 표식 · 세로 주문 · 도장(大吉 吉 小吉 平 注意)
 WEIGHT = 700  # 본문 명조와 붙었을 때 무게가 맞는 지점
 
 HERE = pathlib.Path(__file__).parent
