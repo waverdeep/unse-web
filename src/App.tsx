@@ -188,7 +188,7 @@ export function App() {
               <br />
               있는 운
             </h1>
-            <p className="intro-sub">끌리는 한 장을 골라보세요</p>
+            <p className="intro-sub">마음 가는 부적 한 장을 눌러 뽑으세요</p>
             {friendChip}
             <Fan reduced={reduced} onDrawn={drawn} onShuffle={reshuffle} />
           </section>

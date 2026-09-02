@@ -45,7 +45,7 @@
   --drop: 0 3px 0 rgba(0, 0, 0, 0.32);
 
   --card-w: min(92vw, 360px);
-  --cw: 56px; /* 부적 한 장의 폭. 부채의 모든 치수가 여기서 나온다 */
+  --cw: 96px; /* 부적 한 장의 폭. 부채의 모든 치수가 여기서 나온다. 손패라 엄지 두 개 폭은 되어야 한다 */
 }
 
 * {
@@ -91,6 +91,15 @@ body {
 }
 
 /* ── 시작 화면 ── 별도의 CTA 버튼 없음. 부적이 곧 버튼이다 */
+/* 제목·안내·손패가 한 묶음으로 가운데 선다. 바닥에 붙이면 글과 패 사이가 비어 따로 논다 */
+.intro {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+}
 /* 날짜를 결과 부적과 같은 서체·크기로 얹어 두 화면을 같은 문서로 묶는다 */
 .intro-date {
   font-family: 'IBM Plex Sans KR', sans-serif;
@@ -118,16 +127,16 @@ body {
 .fan {
   position: relative;
   width: 100%;
-  /* 카드 높이 + 바깥 장이 내려앉는 만큼. 회전축이 313% 라 둘 다 카드 폭에서 나온다 */
-  height: calc(30px + var(--cw) * 2.75);
-  margin-top: var(--s6);
+  /* 카드 높이 + 위로 들리는 여유(60) + 바깥 장이 내려앉는 여유(70). 회전축이 165% 라 양끝이 60px 쯤 가라앉는다 */
+  height: calc(var(--cw) * 1.61 + 130px);
+  margin-top: var(--s5);
   touch-action: none;
   user-select: none;
   -webkit-touch-callout: none; /* 쓸다가 멈추면 복사 메뉴가 뜬다 */
 }
 /* 다시 섞기. 부적이 곧 버튼인 화면이라 CTA 가 아니라 안내문의 목소리로 말한다 */
 .shuffle {
-  margin-top: var(--s2);
+  margin-top: var(--s3);
   padding: 10px 16px; /* 글자는 작아도 손가락이 누를 자리는 넉넉히 */
   border: 0;
   background: transparent;
@@ -150,7 +159,7 @@ body {
 .card {
   position: absolute;
   left: 50%;
-  top: 26px;
+  bottom: 70px;
   width: var(--cw);
   height: calc(var(--cw) * 1.61);
   margin-left: calc(var(--cw) / -2);
@@ -158,10 +167,10 @@ body {
   border: 0;
   background-color: var(--cinnabar);
   background-image:
-    repeating-linear-gradient(45deg, rgba(240, 201, 63, 0.26) 0 1px, transparent 1px 6px),
-    repeating-linear-gradient(-45deg, rgba(240, 201, 63, 0.26) 0 1px, transparent 1px 6px);
+    repeating-linear-gradient(45deg, rgba(240, 201, 63, 0.26) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(-45deg, rgba(240, 201, 63, 0.26) 0 1px, transparent 1px 7px);
   border-radius: var(--r-paper);
-  transform-origin: 50% 313%;
+  transform-origin: 50% 165%; /* spec.ts FAN.origin 과 같은 값 */
   will-change: transform;
   cursor: pointer;
 }
@@ -185,8 +194,8 @@ body {
   border-radius: inherit;
   pointer-events: none;
   box-shadow:
-    inset 0 0 0 4px var(--cinnabar),
-    inset 0 0 0 5px rgba(240, 201, 63, 0.7);
+    inset 0 0 0 5px var(--cinnabar),
+    inset 0 0 0 6.5px rgba(240, 201, 63, 0.7);
 }
 /* 뒷면 도장. 겹치면 옆 장의 도장과 이어져 엽전 줄이 된다 */
 .card i {
@@ -498,37 +507,32 @@ button:focus-visible {
     padding-top: calc(env(safe-area-inset-top) + var(--s5));
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--s5));
   }
-  .fan {
-    margin-top: var(--s4);
-  }
   .btns {
     margin-top: var(--s5);
   }
 }
 @media (min-width: 768px) {
   :root {
-    --cw: 64px; /* 데스크톱에서는 부채가 더 커야 화면을 버틴다 */
+    --cw: 110px; /* 데스크톱에서는 부채가 더 커야 화면을 버틴다 */
   }
 }
 @media (max-width: 560px) {
   /* 카드 폭은 :root 에서 바꾼다. 결과 카드에만 걸면 버튼 줄이 따라 좁아지지 않는다 */
   :root {
     --card-w: min(94vw, 330px);
-    --cw: 46px;
   }
 }
 
-/* 19장을 담느라 부채 폭이 카드 크기에 걸린다.
-   360px 안드로이드에서 46px 카드면 5px 넘치므로 한 단 더 줄인다.
-   장수는 유지한다. 줄이면 고르는 맛이 얇아진다 */
+/* 손패는 양끝이 화면 밖으로 조금 나가도 된다 — 손에 쥔 패는 원래 다 안 보인다.
+   다만 좁은 폰에서는 가운데 장들이 너무 겹치므로 한 단씩 줄인다. 장수는 유지한다 */
 @media (max-width: 400px) {
   :root {
-    --cw: 42px;
+    --cw: 88px;
   }
 }
 @media (max-width: 344px) {
   :root {
-    --cw: 38px;
+    --cw: 80px;
   }
 }
 

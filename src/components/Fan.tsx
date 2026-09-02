@@ -1,7 +1,7 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
-import { DEAL, DRAW, FAN, SHUFFLE, shadowFor } from '../lib/spec'
+import { DEAL, DRAW, FAN, IDLE, SHUFFLE, deckTilt, shadowFor } from '../lib/spec'
 
 gsap.registerPlugin(useGSAP)
 
@@ -27,8 +27,58 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
   const dealtRef = useRef(false)
   const activeRef = useRef<number | null>(null)
   const lastHoverRef = useRef<number | null | undefined>(undefined)
+  const breathRef = useRef<gsap.core.Tween | null>(null)
+  const beckonRef = useRef<gsap.core.Tween | null>(null)
 
   const angle = (i: number) => (i - FAN.mid) * FAN.step
+
+  /** 쉬는 동작을 멈춘다. 갸웃하던 부채는 제자리로 — 기운 채 모으면 덱이 삐뚤어진다 */
+  const stopIdle = useCallback(() => {
+    breathRef.current?.kill()
+    breathRef.current = null
+    beckonRef.current?.kill()
+    beckonRef.current = null
+    if (rootRef.current) gsap.to(rootRef.current, { rotation: 0, duration: 0.25, ease: 'power2.out' })
+  }, [])
+
+  /**
+   * 펼쳐진 뒤 화면이 죽지 않게 한다. 부채 전체가 아주 천천히 숨을 쉬고,
+   * 이따금 아무 장이나 삐죽 올라왔다 내려간다 — 만지라고 부르는 신호.
+   * 손이 올라가 있는 동안은 부르지 않는다. 손 아래 장이 곧 신호다.
+   */
+  const startIdle = useCallback(() => {
+    stopIdle()
+    const root = rootRef.current
+    if (reduced || drawnRef.current || !root) return
+    breathRef.current = gsap.to(root, {
+      rotation: IDLE.breatheDeg,
+      transformOrigin: '50% 100%',
+      duration: IDLE.breatheS,
+      yoyo: true,
+      repeat: -1,
+      ease: 'sine.inOut',
+    })
+    const later = (s: number) => {
+      beckonRef.current = gsap.delayedCall(s, beckon)
+    }
+    const beckon = () => {
+      if (drawnRef.current || !dealtRef.current) return
+      if (typeof lastHoverRef.current !== 'number') {
+        const cards = cardsRef.current.filter((el): el is HTMLButtonElement => el !== null)
+        const el = cards[Math.floor(Math.random() * cards.length)]
+        if (el) {
+          gsap
+            .timeline()
+            .to(el, { y: -IDLE.beckonY, duration: IDLE.beckonUpS, ease: 'back.out(2)' })
+            .to(el, { y: 0, duration: IDLE.beckonDownS, ease: 'power2.out' }, `+=${IDLE.beckonHoldS}`)
+        }
+      }
+      later(IDLE.beckonEveryS + Math.random() * IDLE.beckonRandS)
+    }
+    later(IDLE.beckonFirstS)
+  }, [reduced, stopIdle])
+
+  useEffect(() => () => stopIdle(), [stopIdle])
 
   /** 움찔 한 번, 그리고 촤라락. 첫 등장과 다시 섞기가 같은 박자를 쓴다 */
   const unfold = (tl: gsap.core.Timeline, cards: HTMLButtonElement[], at: gsap.Position) =>
@@ -71,12 +121,13 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
         defaults: { transformOrigin: FAN.origin },
         onComplete: () => {
           dealtRef.current = true
+          startIdle()
         },
       })
       dealTl.current = tl
 
       tl.set(cards, {
-        rotation: (i: number) => ((i % 3) - 1) * DEAL.deckJitter,
+        rotation: deckTilt,
         y: DEAL.deckY,
         scale: 0.97,
         boxShadow: shadowFor(0),
@@ -84,7 +135,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
       // 펴기 직전 한 번 움찔. 이 다운스윙이 있어야 펼침이 던져진 것처럼 읽힌다
       unfold(tl, cards, DEAL.holdS)
     },
-    { scope: rootRef, dependencies: [reduced] },
+    { scope: rootRef, dependencies: [reduced, startIdle] },
   )
 
   /** 카드가 겹쳐 있어 클릭 영역 대신 각 장의 x 중심과의 거리로 판정한다 */
@@ -150,6 +201,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
 
     dealtRef.current = false // 되감기는 동안 쓸기·연타를 막는다. 펼쳐지면 다시 풀린다
     lastHoverRef.current = undefined
+    stopIdle()
     gsap.killTweensOf(cards)
     cards.forEach((el, i) => {
       el.style.zIndex = String(i) // 들려 있던 장이 있었다면 쌓임 순서를 되돌린다
@@ -159,12 +211,13 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
       defaults: { transformOrigin: FAN.origin },
       onComplete: () => {
         dealtRef.current = true
+        startIdle()
       },
     })
     dealTl.current = tl // 되감기 중에 집으면 등장 때처럼 그 자리에서 끊긴다
 
     tl.to(cards, {
-      rotation: (i: number) => ((i % 3) - 1) * DEAL.deckJitter,
+      rotation: deckTilt,
       y: DEAL.deckY,
       scale: 0.97,
       boxShadow: shadowFor(0),
@@ -173,12 +226,13 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
       stagger: { each: SHUFFLE.gatherStaggerS, from: 'edges' },
     })
     unfold(tl, cards, `>+=${DEAL.holdS}`)
-  }, [onShuffle, reduced])
+  }, [onShuffle, reduced, startIdle, stopIdle])
 
   const draw = useCallback(
     (idx: number) => {
       if (drawnRef.current) return
       drawnRef.current = true
+      stopIdle()
 
       const cards = cardsRef.current
       const pick = cards[idx]
@@ -240,16 +294,20 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
         )
         .call(() => onDrawn(idx))
     },
-    [onDrawn, reduced],
+    [onDrawn, reduced, stopIdle],
   )
 
   return (
     <>
+      {/* 부적이 곧 버튼인 화면이라 이 버튼은 목소리를 낮춘다. 부채 밖에 두어 쓸기 판정에 안 걸린다 */}
+      <button type="button" className="shuffle" onClick={shuffle}>
+        다시 섞기
+      </button>
       <div
         ref={rootRef}
         className="fan"
         role="group"
-        aria-label="부적 열아홉 장. 한 장을 고르세요"
+        aria-label="부적 열아홉 장. 한 장을 눌러 뽑으세요"
         onPointerDown={(e) => {
           if (drawnRef.current) return
           activeRef.current = nearest(e.clientX)
@@ -300,10 +358,6 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
           </button>
         ))}
       </div>
-      {/* 부적이 곧 버튼인 화면이라 이 버튼은 목소리를 낮춘다. 부채 밖에 두어 쓸기 판정에 안 걸린다 */}
-      <button type="button" className="shuffle" onClick={shuffle}>
-        다시 섞기
-      </button>
     </>
   )
 }
