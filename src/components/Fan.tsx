@@ -170,8 +170,6 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
         const lift = idx === null ? 0 : Math.max(0, FAN.lift - FAN.falloff * d)
         const away = idx === null ? 0 : Math.sign(i - idx)
         const lean = away * FAN.lean * Math.max(0, 1 - d / FAN.leanSpan)
-        // 손가락 아래 장만 맨 위로 올리고 나머지 쌓임 순서는 고정한다. 이웃끼리 순서가 바뀌면 겹침이 흔들린다
-        el.style.zIndex = String(i === idx ? 100 : i)
         const rising = lift > -(gsap.getProperty(el, 'y') as number)
         gsap.to(el, {
           y: -lift,
