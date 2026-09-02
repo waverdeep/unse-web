@@ -25,7 +25,7 @@ export function App() {
 
   const now = useMemo(() => new Date(), [])
 
-  // 오늘 이 기기 앞에 놓이는 열아홉 장. 날짜·기기·오늘 섞은 횟수로만 정해진다
+  // 오늘 이 기기 앞에 놓이는 열한 장. 날짜·기기·오늘 섞은 횟수로만 정해진다
   const [shuffles, setShuffles] = useState(() => readShuffle(now))
   const deck = useMemo(() => todaysDeck(LUCKS, now, FAN.count, shuffles), [now, shuffles])
 
@@ -74,7 +74,7 @@ export function App() {
     [deck, now],
   )
 
-  // 다시 섞으면 열아홉 장이 통째로 갈린다. 저장해 두어야 새로고침해도 섞은 덱 그대로다
+  // 다시 섞으면 열한 장이 통째로 갈린다. 저장해 두어야 새로고침해도 섞은 덱 그대로다
   const reshuffle = useCallback(() => {
     const next = readShuffle(now) + 1
     writeShuffle(now, next)
