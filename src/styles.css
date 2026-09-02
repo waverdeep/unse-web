@@ -15,18 +15,16 @@
 }
 
 :root {
-  --ground: #14302e;
-  --ground-lift: #1b3e3b;
-  --ground-deep: #0e2321;
-  --talis: #f0c93f;
-  --cinnabar: #b32b1e;
-  --bone: #ddd3b6;
-  --soot: #241708;
+  /* 색은 여기 없다. src/theme 이 <html> 인라인 변수로 심는다 —
+     --ground --ground-lift --ground-deep --ground-image --talis --soot
+     --back-paper --back-ring --back-pattern --back-seal-paper --back-seal-ink
+     결과 부적의 --paper --ink --band --band-ink --accent 는 Talisman 이 판정별로 심는다 */
 
   /* 바탕 위 보조 텍스트에 회색을 쓰지 않는다. 노랑의 투명도만 낮춘다 */
-  --dim: rgba(240, 201, 63, 0.5);
-  --dim-2: rgba(240, 201, 63, 0.32);
-  --dim-3: rgba(240, 201, 63, 0.16);
+  --dim: color-mix(in srgb, var(--talis) 50%, transparent);
+  --dim-2: color-mix(in srgb, var(--talis) 32%, transparent);
+  --dim-3: color-mix(in srgb, var(--talis) 16%, transparent);
+  --wash: color-mix(in srgb, var(--talis) 10%, transparent); /* 버튼 hover */
 
   --s1: 4px;
   --s2: 8px;
@@ -60,12 +58,10 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--ground);
-  background-image: radial-gradient(
-    ellipse 90% 50% at 50% 0%,
-    var(--ground-lift) 0%,
-    var(--ground) 40%,
-    var(--ground-deep) 100%
-  );
+  /* 시즌 그림(--ground-image)이 있으면 그라디언트 위에 얹힌다. 없으면 none 이라 한 겹만 남는다 */
+  background-image:
+    var(--ground-image),
+    radial-gradient(ellipse 90% 50% at 50% 0%, var(--ground-lift) 0%, var(--ground) 40%, var(--ground-deep) 100%);
   color: var(--talis);
   font-family: 'Nanum Myeongjo', 'Bujeok Hanja', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
   -webkit-font-smoothing: antialiased;
@@ -153,13 +149,14 @@ body {
 }
 @media (hover: hover) {
   .shuffle:hover {
-    background: rgba(240, 201, 63, 0.1);
+    background: var(--wash);
     border-color: var(--talis);
   }
 }
 
-/* 카드 뒷면. 뽑기 전에는 붉은 뒷면만 보이고, 결과 부적이 앞면이다.
-   옛 책 표지의 능화판 격자 위에 꽉 찬 금 도장 — 놀이 카드의 문법이다 */
+/* 카드 뒷면. 뽑기 전에는 뒷면만 보이고, 결과 부적이 앞면이다.
+   기본 옷은 주사 바탕에 능화판 격자와 꽉 찬 금 도장 — 놀이 카드의 문법이다.
+   색과 무늬는 전부 테마(src/theme) 변수다. 시즌마다 여기 CSS 가 아니라 테마 파일을 바꾼다 */
 .card {
   position: absolute;
   left: 50%;
@@ -169,10 +166,8 @@ body {
   margin-left: calc(var(--cw) / -2);
   padding: 0;
   border: 0;
-  background-color: var(--cinnabar);
-  background-image:
-    repeating-linear-gradient(45deg, rgba(240, 201, 63, 0.26) 0 1px, transparent 1px 7px),
-    repeating-linear-gradient(-45deg, rgba(240, 201, 63, 0.26) 0 1px, transparent 1px 7px);
+  background-color: var(--back-paper);
+  background-image: var(--back-pattern);
   border-radius: var(--r-paper);
   transform-origin: 50% 300%; /* spec.ts FAN.origin 과 같은 값 */
   will-change: transform;
@@ -198,8 +193,8 @@ body {
   border-radius: inherit;
   pointer-events: none;
   box-shadow:
-    inset 0 0 0 5px var(--cinnabar),
-    inset 0 0 0 6.5px rgba(240, 201, 63, 0.7);
+    inset 0 0 0 5px var(--back-paper),
+    inset 0 0 0 6.5px var(--back-ring);
 }
 /* 뒷면 도장. 겹치면 옆 장의 도장과 이어져 엽전 줄이 된다 */
 .card i {
@@ -210,8 +205,8 @@ body {
   width: calc(var(--cw) * 0.44);
   height: calc(var(--cw) * 0.44);
   border-radius: 50%;
-  background: var(--talis);
-  color: var(--cinnabar);
+  background: var(--back-seal-paper);
+  color: var(--back-seal-ink);
   font-style: normal;
   font-weight: 800;
   font-size: calc(var(--cw) * 0.2);
@@ -219,17 +214,17 @@ body {
   display: grid;
   place-items: center;
   box-shadow:
-    0 0 0 2px var(--cinnabar),
-    0 0 0 3px rgba(240, 201, 63, 0.7);
+    0 0 0 2px var(--back-paper),
+    0 0 0 3px var(--back-ring);
 }
 
-/* ── 결과 화면 ── 홍패. 상장처럼 두꺼운 틀에 가운데 정렬 — 운을 수여받는 문서다 */
+/* ── 결과 화면 ── 홍패. 상장처럼 두꺼운 틀에 가운데 정렬 — 운을 수여받는 문서다.
+   --paper --ink --band --band-ink --accent 다섯 변수는 Talisman.tsx 가 테마의 판정별 종이에서 심는다.
+   accent 는 판정색 — 틀·이름·도장이 전부 여기서 나온다 */
 .talisman {
-  --accent: var(--cinnabar); /* 판정색. 틀·이름·점·도장이 전부 여기서 나온다 */
-  --paper: var(--talis);
   width: var(--card-w);
   background: var(--paper);
-  color: var(--soot);
+  color: var(--ink);
   position: relative;
   border-radius: var(--r-paper);
   box-shadow: var(--drop);
@@ -237,20 +232,10 @@ body {
   text-align: center;
   transform-origin: 50% 50%;
 }
-.talisman[data-type='caution'] {
-  --accent: var(--talis);
-  --paper: var(--cinnabar);
-  color: var(--talis);
-}
-.talisman[data-type='soso'] {
-  --accent: #a8321f;
-  --paper: var(--bone);
-  color: #3a2e18;
-}
 
 .t-band {
-  background: var(--cinnabar);
-  color: var(--talis);
+  background: var(--band);
+  color: var(--band-ink);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -264,13 +249,6 @@ body {
   font-family: 'Nanum Myeongjo', 'Bujeok Hanja', 'AppleMyungjo', 'Batang', 'Noto Serif KR', serif;
   font-weight: 800;
   font-size: 12px;
-}
-.talisman[data-type='caution'] .t-band {
-  background: var(--soot);
-}
-.talisman[data-type='soso'] .t-band {
-  background: #3a2e18;
-  color: var(--bone);
 }
 
 /* 상장 틀. 두꺼운 바깥 선과 가는 안쪽 선 — 뒷면 금테와 같은 문법이다 */
@@ -408,7 +386,7 @@ body {
 /* 터치에서는 누른 상태가 손을 떼도 남는다 */
 @media (hover: hover) {
   .act:hover {
-    background: rgba(240, 201, 63, 0.1);
+    background: var(--wash);
     border-color: var(--talis);
   }
 }
@@ -446,7 +424,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 5;
-  background: rgba(14, 35, 33, 0.88);
+  background: color-mix(in srgb, var(--ground-deep) 88%, transparent);
   display: flex;
   align-items: flex-start;
   justify-content: center;

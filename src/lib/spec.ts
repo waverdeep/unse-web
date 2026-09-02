@@ -104,8 +104,6 @@ export const REVEAL = {
   tailStaggerS: 0.08,
 } as const
 
-export const SPELL = '急急如律令'
-
 // 도장은 다섯 단계. 두 글자 도장은 위아래로 쌓는다 — 화면(.seal span)과 캔버스(drawSeal)가 같은 규칙이다
 export const SEAL: Record<string, string> = { great: '大吉', good: '吉', small: '小吉', soso: '平', caution: '注意' }
 
@@ -122,24 +120,4 @@ export function nameSize(len: number): number {
   return map[len] ?? 37
 }
 
-// 결과 부적의 판정 색. 화면과 저장 이미지가 같은 값을 쓴다.
-// 종이는 세 가지뿐이다 — 좋음 세 단계는 같은 금색 종이를 쓰고 도장 글자로만 갈린다.
-export interface Palette {
-  paper: string
-  ink: string
-  band: string
-  bandInk: string
-  accent: string
-}
-
-export function paletteOf(type: string): Palette {
-  if (type === 'caution') {
-    return { paper: '#B32B1E', ink: '#F0C93F', band: '#241708', bandInk: '#F0C93F', accent: '#F0C93F' }
-  }
-  if (type === 'soso') {
-    return { paper: '#DDD3B6', ink: '#3A2E18', band: '#3A2E18', bandInk: '#DDD3B6', accent: '#A8321F' }
-  }
-  return { paper: '#F0C93F', ink: '#241708', band: '#B32B1E', bandInk: '#F0C93F', accent: '#B32B1E' }
-}
-
-export const GROUND = '#14302E'
+// 색은 전부 src/theme 에 있다. 시즌마다 갈아입는 것이라 치수와 섞지 않는다.

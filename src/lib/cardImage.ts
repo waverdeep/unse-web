@@ -1,6 +1,7 @@
 import type { Luck } from '../types'
 import { BRAND, DOMAIN } from './brand'
-import { GROUND, SEAL, SPELL, nameSize, paletteOf } from './spec'
+import { SEAL, nameSize } from './spec'
+import { THEME, type Theme } from '../theme'
 import { formatDate, serialOf } from './seed'
 
 /**
@@ -87,8 +88,8 @@ async function ensureFonts(nameFont: number): Promise<void> {
   }
 }
 
-export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
-  const p = paletteOf(luck.type)
+export async function renderCard(luck: Luck, now: Date, theme: Theme = THEME): Promise<Blob> {
+  const p = theme.papers[luck.type]
   const nameFont = nameSize(luck.name.length)
   await ensureFonts(nameFont)
 
@@ -125,7 +126,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.textBaseline = 'top'
 
   // 바탕
-  ctx.fillStyle = GROUND
+  ctx.fillStyle = theme.ground.base
   ctx.fillRect(0, 0, W + M * 2, cardH + M * 2)
 
   ctx.save()
@@ -171,7 +172,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   } catch {
     // 무시
   }
-  ctx.fillText(SPELL, cx + 1.5, ySpell)
+  ctx.fillText(theme.spell, cx + 1.5, ySpell)
   ctx.restore()
 
   ctx.globalAlpha = 0.6

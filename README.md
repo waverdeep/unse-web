@@ -37,11 +37,31 @@ pnpm sync-lucks --check   # 다른지만 확인 (빌드가 먼저 돌린다)
 | | |
 |---|---|
 | `src/lib/spec.ts` | 디자인 시스템 수치를 모은 곳. 화면 코드에 숫자를 흩뿌리지 않는다 |
+| `src/theme/` | 시즌마다 갈아입는 옷 — 바탕·뒷면·앞면 종이색. 화면(CSS 변수)과 저장 이미지(캔버스)가 같은 객체를 읽는다 |
 | `src/lib/seed.ts` | 오늘의 패 열일곱 장과 하루 잠금 |
 | `src/lib/brand.ts` | 이름과 도메인. 확정되면 이 두 줄만 바꾼다 |
 | `src/components/Fan.tsx` | 부적 열일곱 장과 뽑기 3박자 |
 | `src/components/Talisman.tsx` | 결과 부적 |
 | `src/lib/cardImage.ts` | 저장용 부적을 캔버스에 다시 그린다 |
+
+## 시즌 테마
+
+색과 뒷면은 CSS 에 없고 `src/theme/` 에 있다. 앱이 뜰 때 `applyTheme` 이 `<html>` 인라인 변수로 심고,
+캔버스는 같은 객체를 직접 읽는다. 그래서 테마 파일 하나를 고치면 화면과 저장 이미지가 같이 바뀐다.
+
+| 파일 | 내용 |
+|---|---|
+| `types.ts` | 테마가 가질 수 있는 것. 바꿀 수 없는 것(도장 글자·치수·글꼴)은 여기 없다 |
+| `basic.ts` | 기본 옷. 디자인 시스템의 색 그대로 |
+| `newyear.ts` | 시즌 테마 본보기. `basic` 을 펼쳐 놓고 바탕·뒷면만 바꿨다 |
+| `patterns.ts` | 뒷면 무늬 도우미 — 능화판 격자·점·괘선 |
+| `index.ts` | 등록 목록과 오늘 입을 옷 고르기 |
+
+새 시즌은 `newyear.ts` 를 복사해 `THEMES` 에 넣고 `season: { from: 'MM-DD', to: 'MM-DD' }` 를 채운다.
+기간이 없으면 자동으로 켜지지 않고 `?theme=<id>` 로만 볼 수 있다 — 시즌 전에 미리 보는 문이다.
+
+뒷면 도장 글자(`back.glyph`)나 주문(`spell`)을 한자로 바꾸면 `hanja.woff2` 에도 그 글자가 있어야 한다.
+`scripts/make-hanja-font.py` 의 `GLYPHS` 에 넣고 다시 만든다.
 
 ## 배포
 

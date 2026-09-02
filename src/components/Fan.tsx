@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { DEAL, DRAW, FAN, IDLE, SHUFFLE, deckTilt, shadowFor } from '../lib/spec'
+import { THEME } from '../theme'
 
 gsap.registerPlugin(useGSAP)
 
@@ -361,7 +362,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
             onClick={() => draw(i)}
           >
             {/* 뒷면 문장(紋章). 겹친 장은 왼쪽 테두리 선만 드러나 켜켜이 쌓인 리듬을 만든다 */}
-            <i aria-hidden="true">運</i>
+            <i aria-hidden="true">{THEME.back.glyph}</i>
           </button>
         ))}
       </div>

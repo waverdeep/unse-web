@@ -1,8 +1,9 @@
-import { forwardRef } from 'react'
+import { forwardRef, type CSSProperties } from 'react'
 import type { Luck } from '../types'
 import { BRAND, DOMAIN } from '../lib/brand'
 import { LUCKS } from '../data/lucks'
-import { SEAL, SPELL, nameSize } from '../lib/spec'
+import { SEAL, nameSize } from '../lib/spec'
+import { THEME } from '../theme'
 import { formatDate, serialOf } from '../lib/seed'
 
 interface Props {
@@ -13,8 +14,17 @@ interface Props {
 /** 부적 한 장. 색이 판정을 대신 말한다. */
 export const Talisman = forwardRef<HTMLElement, Props>(function Talisman({ luck, now }, ref) {
   const seal = SEAL[luck.type] ?? '平'
+  // 종이색은 테마가 판정별로 준다. CSS 는 이 다섯 변수만 읽는다 — 캔버스(cardImage)도 같은 객체를 읽는다
+  const p = THEME.papers[luck.type]
+  const paper = {
+    '--paper': p.paper,
+    '--ink': p.ink,
+    '--band': p.band,
+    '--band-ink': p.bandInk,
+    '--accent': p.accent,
+  } as CSSProperties
   return (
-    <article className="talisman" data-type={luck.type} ref={ref}>
+    <article className="talisman" data-type={luck.type} style={paper} ref={ref}>
       <div className="t-band">
         <b>{BRAND}</b>
         <span>{serialOf(luck.id)}</span>
@@ -22,7 +32,7 @@ export const Talisman = forwardRef<HTMLElement, Props>(function Talisman({ luck,
 
       <div className="t-body">
         {/* 주문은 머리 장식 한 줄. 정보가 아니라 밀도라 읽히지 않아도 된다 */}
-        <div className="t-spell" aria-hidden="true">{SPELL}</div>
+        <div className="t-spell" aria-hidden="true">{THEME.spell}</div>
         <div className="t-date">{formatDate(now)}</div>
         {/* 카드에서 큰 것은 운 이름 하나뿐이다. 리드 문구 없이 이름이 바로 받는다 */}
         <div className="t-name" style={{ fontSize: `${nameSize(luck.name.length)}px` }}>{luck.name}</div>
