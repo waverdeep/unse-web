@@ -313,9 +313,9 @@ body {
   top: -2px;
 }
 
-/* 도장은 흐름 안에, 가운데에. 수여 문서의 직인 자리다 */
+/* 도장은 흐름 안에, 오른쪽 아래에. 문서 직인은 본문 끝에 찍힌다 */
 .seal {
-  margin: 14px auto 0;
+  margin: 14px 0 0 auto;
   width: 46px;
   height: 46px;
   border: 3px solid var(--accent);

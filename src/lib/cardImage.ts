@@ -198,7 +198,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.arc(cx - firstW / 2 - 10, yAdvice + 8, 3, 0, Math.PI * 2)
   ctx.fill()
 
-  drawSeal(ctx, cx, ySeal + 23, SEAL[luck.type] ?? '半', p.accent)
+  drawSeal(ctx, W - PAD - 23, ySeal + 23, SEAL[luck.type] ?? '半', p.accent)
 
   ctx.globalAlpha = 0.55
   ctx.fillStyle = p.ink
