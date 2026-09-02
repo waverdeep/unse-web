@@ -295,9 +295,9 @@ body {
   word-break: keep-all;
   text-align: left;
 }
-/* 조언은 라벨 없이 붉은 점 하나로 연다. 예언보다 반 톤 물러난다 */
+/* 조언은 라벨 없이 붉은 점으로 여는 목록(2~3개)이다. 예언보다 반 톤 물러난다 */
 .t-advice {
-  margin-top: 15px;
+  margin-top: 8px;
   font-size: 14px;
   line-height: 1.6;
   opacity: 0.78;
@@ -305,6 +305,9 @@ body {
   text-align: left;
   text-indent: -13px;
   padding-left: 13px;
+}
+.t-prophecy + .t-advice {
+  margin-top: 15px;
 }
 .dot {
   display: inline-block;

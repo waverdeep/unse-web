@@ -91,7 +91,11 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   measure.font = `700 15.5px ${MYEONGJO}`
   const prophecy = wrap(measure, luck.prophecy, inner)
   measure.font = `400 14px ${MYEONGJO}`
-  const advice = wrap(measure, luck.advice, inner - 13)
+  const advice = luck.advice.map((a) => wrap(measure, a, inner - 13))
+  const ADV_LH = 14 * 1.6
+  const ADV_GAP = 8
+  const adviceH =
+    advice.reduce((s, lines) => s + lines.length * ADV_LH, 0) + (advice.length - 1) * ADV_GAP
 
   // 세로 배치를 먼저 계산해 카드 높이를 정한다
   const ySpell = BAND + 26
@@ -101,7 +105,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   const yRule = yName + nameFont * 1.06 + 15
   const yProphecy = yRule + 3 + 13
   const yAdvice = yProphecy + prophecy.length * 15.5 * 1.62 + 15
-  const ySeal = yAdvice + advice.length * 14 * 1.6 + 18
+  const ySeal = yAdvice + adviceH + 18
   const yFine = ySeal + 46 + 16
   const cardH = yFine + 50
 
@@ -188,14 +192,20 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.font = `700 15.5px ${MYEONGJO}`
   prophecy.forEach((line, i) => ctx.fillText(line, PAD, yProphecy + i * 15.5 * 1.62))
 
-  ctx.globalAlpha = 0.78
   ctx.font = `400 14px ${MYEONGJO}`
-  advice.forEach((line, i) => ctx.fillText(line, PAD + 13, yAdvice + i * 14 * 1.6))
+  let ay = yAdvice
+  for (const lines of advice) {
+    ctx.globalAlpha = 1
+    ctx.fillStyle = p.accent
+    ctx.beginPath()
+    ctx.arc(PAD + 3, ay + 8, 3, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.globalAlpha = 0.78
+    ctx.fillStyle = p.ink
+    lines.forEach((line, i) => ctx.fillText(line, PAD + 13, ay + i * ADV_LH))
+    ay += lines.length * ADV_LH + ADV_GAP
+  }
   ctx.globalAlpha = 1
-  ctx.fillStyle = p.accent
-  ctx.beginPath()
-  ctx.arc(PAD + 3, yAdvice + 8, 3, 0, Math.PI * 2)
-  ctx.fill()
 
   drawSeal(ctx, W - PAD - 23, ySeal + 23, SEAL[luck.type] ?? '半', p.accent)
 

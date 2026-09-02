@@ -28,10 +28,12 @@ export const Talisman = forwardRef<HTMLElement, Props>(function Talisman({ luck,
         <div className="t-name" style={{ fontSize: `${nameSize(luck.name.length)}px` }}>{luck.name}</div>
         <div className="t-rule" />
         <p className="t-prophecy">{luck.prophecy}</p>
-        <p className="t-advice">
-          <span className="dot" aria-hidden="true" />
-          <span>{luck.advice}</span>
-        </p>
+        {luck.advice.map((a) => (
+          <p className="t-advice" key={a}>
+            <span className="dot" aria-hidden="true" />
+            <span>{a}</span>
+          </p>
+        ))}
 
         {/* 도장은 흐름 안에 둔다. absolute 로 고정하면 두 줄짜리 조언 위에 얹힌다 */}
         <div className="seal" aria-hidden="true">{SEAL[luck.type] ?? '半'}</div>

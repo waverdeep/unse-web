@@ -8,11 +8,12 @@ const TYPES: readonly string[] = ['good', 'bad', 'ambiguous']
 function assertLuck(x: unknown, i: number): Luck {
   const o = x as Record<string, unknown>
   if (typeof o?.id !== 'number' || typeof o?.name !== 'string' ||
-      typeof o?.prophecy !== 'string' || typeof o?.advice !== 'string' ||
+      typeof o?.prophecy !== 'string' ||
+      !Array.isArray(o?.advice) || o.advice.some((a) => typeof a !== 'string') ||
       typeof o?.type !== 'string' || !TYPES.includes(o.type)) {
     throw new Error(`lucks.json ${i}번째 항목의 형태가 맞지 않습니다`)
   }
-  return { id: o.id, name: o.name, prophecy: o.prophecy, advice: o.advice, type: o.type as LuckType }
+  return { id: o.id, name: o.name, prophecy: o.prophecy, advice: o.advice as string[], type: o.type as LuckType }
 }
 
 export const LUCKS: readonly Luck[] = (raw as unknown[]).map(assertLuck)

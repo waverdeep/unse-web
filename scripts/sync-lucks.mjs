@@ -39,9 +39,16 @@ lucks.forEach((x, i) => {
   if (keys !== [...KEYS].sort().join(',')) fail(`${i}번째 항목의 키가 다릅니다 (${keys})`)
   if (x.id !== i + 1) fail(`${i}번째 항목의 id 가 ${x.id} 입니다. 1부터 연속이어야 합니다`)
   if (!TYPES.has(x.type)) fail(`${x.id}번 type 이 ${x.type} 입니다`)
-  for (const k of ['name', 'prophecy', 'advice']) {
+  for (const k of ['name', 'prophecy']) {
     if (typeof x[k] !== 'string' || !x[k].trim()) fail(`${x.id}번 ${k} 가 비어 있습니다`)
   }
+  // 조언은 2~3개의 목록이다. 나쁜 운은 타개·처방 형태로 쓴다
+  if (!Array.isArray(x.advice) || x.advice.length < 2 || x.advice.length > 3) {
+    fail(`${x.id}번 advice 가 2~3개의 배열이 아닙니다`)
+  }
+  x.advice.forEach((a, j) => {
+    if (typeof a !== 'string' || !a.trim()) fail(`${x.id}번 advice[${j}] 가 비어 있습니다`)
+  })
 })
 const names = new Set(lucks.map((x) => x.name))
 if (names.size !== lucks.length) fail('이름이 중복됩니다')
