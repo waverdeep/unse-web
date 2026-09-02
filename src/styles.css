@@ -285,7 +285,7 @@ body {
   height: 3px;
   background: currentColor;
   opacity: 0.3;
-  margin: 13px auto 11px;
+  margin: 15px auto 13px;
 }
 /* 제목부는 가운데, 읽는 글은 왼끝. 가운데 정렬 문단은 두 줄만 넘어도 읽기 어렵다 */
 .t-prophecy {
@@ -295,12 +295,12 @@ body {
   word-break: keep-all;
   text-align: left;
 }
-/* 조언은 라벨 없이 붉은 점 하나로 연다 */
+/* 조언은 라벨 없이 붉은 점 하나로 연다. 예언보다 반 톤 물러난다 */
 .t-advice {
-  margin-top: 12px;
+  margin-top: 15px;
   font-size: 14px;
   line-height: 1.6;
-  opacity: 0.85;
+  opacity: 0.78;
   word-break: keep-all;
   text-align: left;
   text-indent: -13px;
@@ -320,7 +320,7 @@ body {
 
 /* 도장은 흐름 안에, 오른쪽 아래에. 문서 직인은 본문 끝에 찍힌다 */
 .seal {
-  margin: 14px 0 0 auto;
+  margin: 18px 0 0 auto;
   width: 46px;
   height: 46px;
   border: 3px solid var(--accent);

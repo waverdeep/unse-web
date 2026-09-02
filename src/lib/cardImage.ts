@@ -98,10 +98,10 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   const yDate = ySpell + 17
   const yLead = yDate + 24
   const yName = yLead + 16
-  const yRule = yName + nameFont * 1.06 + 13
-  const yProphecy = yRule + 3 + 11
-  const yAdvice = yProphecy + prophecy.length * 15.5 * 1.62 + 12
-  const ySeal = yAdvice + advice.length * 14 * 1.6 + 14
+  const yRule = yName + nameFont * 1.06 + 15
+  const yProphecy = yRule + 3 + 13
+  const yAdvice = yProphecy + prophecy.length * 15.5 * 1.62 + 15
+  const ySeal = yAdvice + advice.length * 14 * 1.6 + 18
   const yFine = ySeal + 46 + 16
   const cardH = yFine + 50
 
@@ -188,7 +188,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.font = `700 15.5px ${MYEONGJO}`
   prophecy.forEach((line, i) => ctx.fillText(line, PAD, yProphecy + i * 15.5 * 1.62))
 
-  ctx.globalAlpha = 0.85
+  ctx.globalAlpha = 0.78
   ctx.font = `400 14px ${MYEONGJO}`
   advice.forEach((line, i) => ctx.fillText(line, PAD + 13, yAdvice + i * 14 * 1.6))
   ctx.globalAlpha = 1
@@ -204,7 +204,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.fillRect(PAD, yFine, inner, 1)
   ctx.font = `400 9.5px ${PLEX}`
   ctx.textAlign = 'left'
-  ctx.fillText('본 부적은 아무런 효력이 없습니다.', PAD, yFine + 8)
+  ctx.fillText('본 부적의 효력은 오늘 자정까지입니다.', PAD, yFine + 8)
   ctx.textAlign = 'right'
   ctx.fillText(DOMAIN || '100종 중 1종', W - PAD, yFine + 8)
 
