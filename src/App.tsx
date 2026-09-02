@@ -25,7 +25,7 @@ export function App() {
 
   const now = useMemo(() => new Date(), [])
 
-  // 오늘 이 기기 앞에 놓이는 열일곱 장. 날짜와 기기로만 정해진다
+  // 오늘 이 기기 앞에 놓이는 열아홉 장. 날짜와 기기로만 정해진다
   const deck = useMemo(() => todaysDeck(LUCKS, now, FAN.count), [now])
 
   // 무엇을 집을지는 손이 정한다. 한 번 집으면 그날은 잠긴다
