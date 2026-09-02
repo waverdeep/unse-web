@@ -138,20 +138,28 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
     { scope: rootRef, dependencies: [reduced, startIdle] },
   )
 
-  /** 카드가 겹쳐 있어 클릭 영역 대신 각 장의 x 중심과의 거리로 판정한다 */
-  const nearest = useCallback((x: number) => {
-    let best = 0
-    let bestDist = Infinity
-    cardsRef.current.forEach((el, i) => {
-      if (!el) return
-      const r = el.getBoundingClientRect()
-      const d = Math.abs(x - (r.left + r.width / 2))
-      if (d < bestDist) {
-        bestDist = d
-        best = i
-      }
-    })
-    return best
+  /**
+   * 손끝 아래 '보이는' 장. 겹친 패에서 눈에 보이는 건 각 장의 왼쪽 띠라,
+   * 중심이 가장 가까운 장이 아니라 왼쪽 가장자리를 손이 지난 마지막 장이 손 아래 장이다
+   * (중심 거리로 재면 1~3장 왼쪽이 들린다). 회전축에서 본 각도로 풀면 기울어진 양끝도 맞고,
+   * 쉬는 자리 기준이라 들리거나 벌어진 채로 손이 움직여도 판정이 떨리지 않는다.
+   */
+  const hit = useCallback((x: number, y: number) => {
+    const root = rootRef.current
+    const el = cardsRef.current[0]
+    if (!root || !el) return 0
+    const r = root.getBoundingClientRect()
+    const w = el.offsetWidth
+    const px = r.left + el.offsetLeft + w / 2
+    const py = r.top + el.offsetTop + el.offsetHeight * FAN.pivotY
+    const dx = x - px
+    const dy = py - y
+    const dist = Math.hypot(dx, dy) || 1
+    const deg = 180 / Math.PI
+    const theta = Math.atan2(dx, dy) * deg // 축에서 곧게 위가 0°, 오른쪽으로 갈수록 +
+    const halfW = Math.asin(Math.min(1, w / 2 / dist)) * deg // 이 거리에서 카드 반 폭이 차지하는 각
+    const i = Math.floor((theta + halfW) / FAN.step + FAN.mid)
+    return Math.max(0, Math.min(FAN.count - 1, i))
   }, [])
 
   /**
@@ -167,13 +175,14 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
       cardsRef.current.forEach((el, i) => {
         if (!el) return
         const d = idx === null ? Infinity : Math.abs(i - idx)
-        const lift = idx === null ? 0 : Math.max(0, FAN.lift - FAN.falloff * d)
+        // 물결 위에 손 아래 장만 한 번 더 뽑힌다. 순서를 안 바꾸니 높이로 가려내야 한다
+        const lift = idx === null ? 0 : d === 0 ? FAN.liftMax : Math.max(0, FAN.lift - FAN.falloff * d)
         const away = idx === null ? 0 : Math.sign(i - idx)
         const lean = away * FAN.lean * Math.max(0, 1 - d / FAN.leanSpan)
         const rising = lift > -(gsap.getProperty(el, 'y') as number)
         gsap.to(el, {
           y: -lift,
-          scale: 1 + FAN.grow * (lift / FAN.lift),
+          scale: 1 + FAN.grow * (lift / FAN.liftMax),
           rotation: angle(i) + lean,
           boxShadow: shadowFor(lift),
           duration: reduced ? 0 : rising ? FAN.riseS : FAN.fallS,
@@ -308,7 +317,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
         aria-label="카드 열다섯 장. 한 장을 눌러 뽑으세요"
         onPointerDown={(e) => {
           if (drawnRef.current) return
-          activeRef.current = nearest(e.clientX)
+          activeRef.current = hit(e.clientX, e.clientY)
           hover(activeRef.current)
           try {
             e.currentTarget.setPointerCapture(e.pointerId)
@@ -319,11 +328,11 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
         onPointerMove={(e) => {
           if (drawnRef.current) return
           if (e.pointerType === 'mouse' && e.buttons === 0) {
-            hover(nearest(e.clientX))
+            hover(hit(e.clientX, e.clientY))
             return
           }
           if (activeRef.current === null) return
-          activeRef.current = nearest(e.clientX)
+          activeRef.current = hit(e.clientX, e.clientY)
           hover(activeRef.current)
         }}
         onPointerLeave={() => {
@@ -331,7 +340,7 @@ export function Fan({ onDrawn, onShuffle, reduced }: Props) {
         }}
         onPointerUp={(e) => {
           if (drawnRef.current) return
-          const idx = activeRef.current ?? nearest(e.clientX)
+          const idx = activeRef.current ?? hit(e.clientX, e.clientY)
           activeRef.current = null
           draw(idx) // 손을 떼는 순간 확정. 확인 단계 없음
         }}

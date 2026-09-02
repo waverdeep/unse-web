@@ -127,8 +127,8 @@ body {
 .fan {
   position: relative;
   width: 100%;
-  /* 카드 높이 + 위로 들리는 여유(60) + 바깥 장이 내려앉는 여유(50). 회전축이 300% 라 양끝이 40px 쯤 가라앉는다 */
-  height: calc(var(--cw) * 1.61 + 110px);
+  /* 카드 높이 + 위로 들리는 여유(80: 들림 40 + 손 아래 여분 20 + 커짐) + 바깥 장이 내려앉는 여유(50). 회전축이 300% 라 양끝이 40px 쯤 가라앉는다 */
+  height: calc(var(--cw) * 1.61 + 130px);
   margin-top: var(--s5);
   touch-action: none;
   user-select: none;
