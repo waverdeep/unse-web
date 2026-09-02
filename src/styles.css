@@ -322,30 +322,17 @@ body {
   word-break: keep-all;
   text-align: left;
 }
-/* 조언은 라벨 없이 붉은 점으로 여는 목록(2~3개)이다. 예언보다 반 톤 물러난다 */
+/* 조언은 목록이 아니라 말이다. 점 없이 짧은 문단 2~3개 — 문단 사이 간격이 말의 박자다. 예언보다 반 톤 물러난다 */
 .t-advice {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 14px;
   line-height: 1.6;
   opacity: 0.78;
   word-break: keep-all;
   text-align: left;
-  text-indent: -13px;
-  padding-left: 13px;
 }
 .t-prophecy + .t-advice {
   margin-top: 15px;
-}
-.dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  margin-right: 7px;
-  vertical-align: middle;
-  position: relative;
-  top: -2px;
 }
 
 /* 도장은 흐름 안에, 오른쪽 아래에. 문서 직인은 본문 끝에 찍힌다 */

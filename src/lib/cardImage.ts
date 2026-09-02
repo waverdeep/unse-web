@@ -99,9 +99,9 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   measure.font = `700 15.5px ${MYEONGJO}`
   const prophecy = wrap(measure, luck.prophecy, inner)
   measure.font = `400 14px ${MYEONGJO}`
-  const advice = luck.advice.map((a) => wrap(measure, a, inner - 13))
+  const advice = luck.advice.map((a) => wrap(measure, a, inner))
   const ADV_LH = 14 * 1.6
-  const ADV_GAP = 8
+  const ADV_GAP = 10 // 문단 사이. 화면의 .t-advice margin-top 과 같다
   const adviceH =
     advice.reduce((s, lines) => s + lines.length * ADV_LH, 0) + (advice.length - 1) * ADV_GAP
 
@@ -197,15 +197,11 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
 
   ctx.font = `400 14px ${MYEONGJO}`
   let ay = yAdvice
+  // 조언은 점 없는 짧은 문단이다. 화면(.t-advice)과 같은 규칙
+  ctx.globalAlpha = 0.78
+  ctx.fillStyle = p.ink
   for (const lines of advice) {
-    ctx.globalAlpha = 1
-    ctx.fillStyle = p.accent
-    ctx.beginPath()
-    ctx.arc(PAD + 3, ay + 8, 3, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.globalAlpha = 0.78
-    ctx.fillStyle = p.ink
-    lines.forEach((line, i) => ctx.fillText(line, PAD + 13, ay + i * ADV_LH))
+    lines.forEach((line, i) => ctx.fillText(line, PAD, ay + i * ADV_LH))
     ay += lines.length * ADV_LH + ADV_GAP
   }
   ctx.globalAlpha = 1
