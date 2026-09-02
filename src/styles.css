@@ -287,11 +287,13 @@ body {
   opacity: 0.3;
   margin: 13px auto 11px;
 }
+/* 제목부는 가운데, 읽는 글은 왼끝. 가운데 정렬 문단은 두 줄만 넘어도 읽기 어렵다 */
 .t-prophecy {
   font-size: 15.5px;
   line-height: 1.62;
   font-weight: 700;
   word-break: keep-all;
+  text-align: left;
 }
 /* 조언은 라벨 없이 붉은 점 하나로 연다 */
 .t-advice {
@@ -300,6 +302,9 @@ body {
   line-height: 1.6;
   opacity: 0.85;
   word-break: keep-all;
+  text-align: left;
+  text-indent: -13px;
+  padding-left: 13px;
 }
 .dot {
   display: inline-block;
@@ -325,8 +330,6 @@ body {
   place-items: center;
   font-weight: 800;
   font-size: 22px;
-  /* 인쇄가 아니라 찍힌 것. 가운데 정렬 축이라 크게 기울면 흐트러진다 */
-  transform: rotate(-5deg);
   opacity: 0.55;
 }
 

@@ -44,7 +44,6 @@ function drawSeal(ctx: CanvasRenderingContext2D, cx: number, cy: number, glyph: 
   ctx.save()
   ctx.globalAlpha = 0.55
   ctx.translate(cx, cy)
-  ctx.rotate((-5 * Math.PI) / 180) // 화면 .seal 의 기울기와 같은 값
   ctx.strokeStyle = color
   ctx.lineWidth = 3
   ctx.strokeRect(-23, -23, 46, 46)
@@ -92,7 +91,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   measure.font = `700 15.5px ${MYEONGJO}`
   const prophecy = wrap(measure, luck.prophecy, inner)
   measure.font = `400 14px ${MYEONGJO}`
-  const advice = wrap(measure, luck.advice, inner)
+  const advice = wrap(measure, luck.advice, inner - 13)
 
   // 세로 배치를 먼저 계산해 카드 높이를 정한다
   const ySpell = BAND + 26
@@ -183,19 +182,19 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
   ctx.fillStyle = p.ink
   ctx.fillRect(cx - 22, yRule, 44, 3)
 
+  // 제목부는 가운데, 읽는 글은 왼끝
+  ctx.textAlign = 'left'
   ctx.globalAlpha = 1
   ctx.font = `700 15.5px ${MYEONGJO}`
-  prophecy.forEach((line, i) => ctx.fillText(line, cx, yProphecy + i * 15.5 * 1.62))
+  prophecy.forEach((line, i) => ctx.fillText(line, PAD, yProphecy + i * 15.5 * 1.62))
 
   ctx.globalAlpha = 0.85
   ctx.font = `400 14px ${MYEONGJO}`
-  advice.forEach((line, i) => ctx.fillText(line, cx, yAdvice + i * 14 * 1.6))
-  // 조언을 여는 붉은 점 · 첫 줄 앞에 붙는다
-  const firstW = ctx.measureText(advice[0] ?? '').width
+  advice.forEach((line, i) => ctx.fillText(line, PAD + 13, yAdvice + i * 14 * 1.6))
   ctx.globalAlpha = 1
   ctx.fillStyle = p.accent
   ctx.beginPath()
-  ctx.arc(cx - firstW / 2 - 10, yAdvice + 8, 3, 0, Math.PI * 2)
+  ctx.arc(PAD + 3, yAdvice + 8, 3, 0, Math.PI * 2)
   ctx.fill()
 
   drawSeal(ctx, W - PAD - 23, ySeal + 23, SEAL[luck.type] ?? '半', p.accent)

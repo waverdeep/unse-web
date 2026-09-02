@@ -74,17 +74,11 @@ export function App() {
             ease: REVEAL.cardEase,
           },
         )
-        // 도장은 떨어지는 물건이다. 비스듬히 커진 채 나타나 기울며 내리찍히고, 카드가 살짝 눌린다
+        // 도장은 떨어지는 물건이다. 커진 채 나타나 정으로 내리찍히고, 카드가 살짝 눌린다
         .fromTo(
           '.seal',
-          { scale: REVEAL.stampFrom, opacity: 0, rotation: REVEAL.stampFromDeg },
-          {
-            scale: 1,
-            opacity: 0.55,
-            rotation: REVEAL.stampToDeg,
-            duration: REVEAL.stampS,
-            ease: REVEAL.stampEase,
-          },
+          { scale: REVEAL.stampFrom, opacity: 0 },
+          { scale: 1, opacity: 0.55, duration: REVEAL.stampS, ease: REVEAL.stampEase },
           '-=0.06',
         )
         .to(card, { y: REVEAL.thumpY, duration: 0.06, yoyo: true, repeat: 1, ease: 'power1.inOut' })

@@ -57,10 +57,8 @@ export const REVEAL = {
   fromDeg: -82,
   cardS: 0.42,
   cardEase: 'back.out(1.2)',
-  stampS: 0.26, // 도장은 떨어지는 물건이다. 커진 채 나타나 내리찍힌다
+  stampS: 0.26, // 도장은 떨어지는 물건이다. 커진 채 나타나 정으로 내리찍힌다
   stampFrom: 2.1,
-  stampFromDeg: -20, // 비스듬히 떠 있다가
-  stampToDeg: -5, // 기울며 자리 잡는다. CSS .seal 의 기울기와 같은 값
   stampEase: 'power3.in',
   thumpY: 2, // 도장이 닿는 순간 카드가 살짝 눌린다
   tailS: 0.32, // 버튼·안내문이 아래에서 따라 올라온다
