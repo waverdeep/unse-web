@@ -213,7 +213,7 @@ export async function renderCard(luck: Luck, now: Date): Promise<Blob> {
 
 export function fileNameFor(luck: Luck, now: Date): string {
   const d = formatDate(now).slice(0, 10).replace(/\./g, '')
-  return `무슨운_${luck.name}_${d}.png`
+  return `운뽑_${luck.name}_${d}.png`
 }
 
 export type SaveResult = 'shared' | 'downloaded'
