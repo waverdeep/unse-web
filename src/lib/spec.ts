@@ -38,6 +38,13 @@ export const DEAL = {
   ease: 'back.out(1.2)', // 살짝 넘쳤다 돌아와야 종이가 살아 있다
 } as const
 
+// 다시 섞기 · 부채가 덱으로 되감겼다가 등장과 같은 박자로 다시 펼쳐진다.
+export const SHUFFLE = {
+  gatherS: 0.3, // 펼침(0.55s)보다 빨라야 한다. 모으기는 준비 동작이지 볼거리가 아니다
+  gatherStaggerS: 0.012, // 바깥 장부터 모인다. 펼침의 역재생처럼 읽힌다
+  gatherEase: 'power2.in',
+} as const
+
 // 뽑기 3박자. 박자를 조금씩 겹쳐야 하나의 연속된 동작으로 읽힌다.
 export const DRAW = {
   oneS: 0.26, // 1박 · 뽑은 장이 스프레드에서 솟는다

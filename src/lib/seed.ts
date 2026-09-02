@@ -8,6 +8,7 @@ import type { Luck } from '../types'
 
 const DEVICE_KEY = 'unse.deviceId'
 const DRAWN_KEY = 'unse.drawn'
+const SHUFFLE_KEY = 'unse.shuffle'
 
 function readLocal(key: string): string | null {
   try {
@@ -63,10 +64,10 @@ function seeded(seed: number): () => number {
 
 /**
  * 오늘 이 기기 앞에 놓이는 패.
- * 날짜와 기기로만 정해지므로 새로고침해도 같은 열아홉 장이 나온다.
+ * 날짜·기기·오늘 섞은 횟수로만 정해지므로 새로고침해도 같은 열아홉 장이 나온다.
  */
-export function todaysDeck(lucks: readonly Luck[], now: Date, size: number): Luck[] {
-  const rnd = seeded(fnv1a(`${dateKey(now)}|${deviceId()}`))
+export function todaysDeck(lucks: readonly Luck[], now: Date, size: number, shuffle = 0): Luck[] {
+  const rnd = seeded(fnv1a(`${dateKey(now)}|${deviceId()}|${shuffle}`))
   const idx = Array.from({ length: lucks.length }, (_, i) => i)
   const n = Math.min(size, idx.length)
   // 앞에서 n장만 필요하므로 부분 셔플이면 충분하다
@@ -96,6 +97,23 @@ export function readDrawn(now: Date): number | null {
 /** 한 번 집으면 그날은 잠긴다 */
 export function writeDrawn(now: Date, id: number): void {
   writeLocal(DRAWN_KEY, JSON.stringify({ date: dateKey(now), id }))
+}
+
+/** 오늘 덱을 몇 번 섞었는지. 저장해 두어야 새로고침해도 섞은 덱이 유지된다 */
+export function readShuffle(now: Date): number {
+  const raw = readLocal(SHUFFLE_KEY)
+  if (!raw) return 0
+  try {
+    const saved = JSON.parse(raw) as { date?: unknown; n?: unknown }
+    if (saved.date === dateKey(now) && typeof saved.n === 'number') return saved.n
+  } catch {
+    // 남의 손을 탄 값이면 없던 것으로 친다
+  }
+  return 0
+}
+
+export function writeShuffle(now: Date, n: number): void {
+  writeLocal(SHUFFLE_KEY, JSON.stringify({ date: dateKey(now), n }))
 }
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'] as const

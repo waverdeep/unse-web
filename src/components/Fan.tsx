@@ -1,13 +1,15 @@
 import { useCallback, useRef } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
-import { DEAL, DRAW, FAN, shadowFor } from '../lib/spec'
+import { DEAL, DRAW, FAN, SHUFFLE, shadowFor } from '../lib/spec'
 
 gsap.registerPlugin(useGSAP)
 
 interface Props {
   /** 3박자가 끝나는 순간. 몇 번째 장을 집었는지가 결과를 가른다 */
   onDrawn: (index: number) => void
+  /** 다시 섞기. 부모가 덱의 순서를 갈아끼운다 — 뒷면이라 갈아끼우는 순간은 보이지 않는다 */
+  onShuffle: () => void
   reduced: boolean
 }
 
@@ -17,7 +19,7 @@ interface Props {
  * 쓸어 넘기는 동안 카드마다 transform 을 초당 수십 번 고쳐야 해서
  * 상태로 관리하지 않고 GSAP 으로 DOM 을 직접 만진다. React 는 카드를 만드는 데까지만 쓴다.
  */
-export function Fan({ onDrawn, reduced }: Props) {
+export function Fan({ onDrawn, onShuffle, reduced }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const cardsRef = useRef<(HTMLButtonElement | null)[]>([])
   const dealTl = useRef<gsap.core.Timeline | null>(null)
@@ -27,6 +29,23 @@ export function Fan({ onDrawn, reduced }: Props) {
   const lastHoverRef = useRef<number | null | undefined>(undefined)
 
   const angle = (i: number) => (i - FAN.mid) * FAN.step
+
+  /** 움찔 한 번, 그리고 촤라락. 첫 등장과 다시 섞기가 같은 박자를 쓴다 */
+  const unfold = (tl: gsap.core.Timeline, cards: HTMLButtonElement[], at: gsap.Position) =>
+    tl
+      .to(cards, { y: DEAL.deckY + DEAL.dipY, duration: DEAL.dipS, ease: 'power2.in' }, at)
+      .to(
+        cards,
+        {
+          rotation: (i: number) => angle(i),
+          y: 0,
+          scale: 1,
+          duration: DEAL.spreadS,
+          ease: DEAL.ease,
+          stagger: DEAL.staggerS,
+        },
+        '>-0.02',
+      )
 
   // 등장 · 덱 → 움찔 → 촤라락. 왼쪽부터 훑고 지나간다.
   // 가운데부터 펴면 좌우가 동시에 움직여 한 덩어리가 벌어지는 것처럼 보인다.
@@ -62,20 +81,8 @@ export function Fan({ onDrawn, reduced }: Props) {
         scale: 0.97,
         boxShadow: shadowFor(0),
       })
-        // 펴기 직전 한 번 움찔. 이 다운스윙이 있어야 펼침이 던져진 것처럼 읽힌다
-        .to(cards, { y: DEAL.deckY + DEAL.dipY, duration: DEAL.dipS, ease: 'power2.in' }, DEAL.holdS)
-        .to(
-          cards,
-          {
-            rotation: (i: number) => angle(i),
-            y: 0,
-            scale: 1,
-            duration: DEAL.spreadS,
-            ease: DEAL.ease,
-            stagger: DEAL.staggerS,
-          },
-          '>-0.02',
-        )
+      // 펴기 직전 한 번 움찔. 이 다운스윙이 있어야 펼침이 던져진 것처럼 읽힌다
+      unfold(tl, cards, DEAL.holdS)
     },
     { scope: rootRef, dependencies: [reduced] },
   )
@@ -129,6 +136,44 @@ export function Fan({ onDrawn, reduced }: Props) {
     },
     [reduced],
   )
+
+  /**
+   * 부채가 덱으로 되감겼다가 다시 펼쳐진다.
+   * 순서는 모인 사이에 부모가 갈아끼우지만, 뒷면뿐이라 눈에는 섞는 동작만 보인다.
+   */
+  const shuffle = useCallback(() => {
+    if (drawnRef.current || !dealtRef.current) return
+    onShuffle()
+
+    const cards = cardsRef.current.filter((el): el is HTMLButtonElement => el !== null)
+    if (reduced) return // 움직임 없이 순서만 바뀐다. 피드백은 부모의 토스트가 맡는다
+
+    dealtRef.current = false // 되감기는 동안 쓸기·연타를 막는다. 펼쳐지면 다시 풀린다
+    lastHoverRef.current = undefined
+    gsap.killTweensOf(cards)
+    cards.forEach((el, i) => {
+      el.style.zIndex = String(i) // 들려 있던 장이 있었다면 쌓임 순서를 되돌린다
+    })
+
+    const tl = gsap.timeline({
+      defaults: { transformOrigin: FAN.origin },
+      onComplete: () => {
+        dealtRef.current = true
+      },
+    })
+    dealTl.current = tl // 되감기 중에 집으면 등장 때처럼 그 자리에서 끊긴다
+
+    tl.to(cards, {
+      rotation: (i: number) => ((i % 3) - 1) * DEAL.deckJitter,
+      y: DEAL.deckY,
+      scale: 0.97,
+      boxShadow: shadowFor(0),
+      duration: SHUFFLE.gatherS,
+      ease: SHUFFLE.gatherEase,
+      stagger: { each: SHUFFLE.gatherStaggerS, from: 'edges' },
+    })
+    unfold(tl, cards, `>+=${DEAL.holdS}`)
+  }, [onShuffle, reduced])
 
   const draw = useCallback(
     (idx: number) => {
@@ -199,60 +244,66 @@ export function Fan({ onDrawn, reduced }: Props) {
   )
 
   return (
-    <div
-      ref={rootRef}
-      className="fan"
-      role="group"
-      aria-label="부적 열아홉 장. 한 장을 고르세요"
-      onPointerDown={(e) => {
-        if (drawnRef.current) return
-        activeRef.current = nearest(e.clientX)
-        hover(activeRef.current)
-        try {
-          e.currentTarget.setPointerCapture(e.pointerId)
-        } catch {
-          // 캡처가 안 되면 그냥 진행한다
-        }
-      }}
-      onPointerMove={(e) => {
-        if (drawnRef.current) return
-        if (e.pointerType === 'mouse' && e.buttons === 0) {
-          hover(nearest(e.clientX))
-          return
-        }
-        if (activeRef.current === null) return
-        activeRef.current = nearest(e.clientX)
-        hover(activeRef.current)
-      }}
-      onPointerLeave={() => {
-        if (activeRef.current === null) hover(null)
-      }}
-      onPointerUp={(e) => {
-        if (drawnRef.current) return
-        const idx = activeRef.current ?? nearest(e.clientX)
-        activeRef.current = null
-        draw(idx) // 손을 떼는 순간 확정. 확인 단계 없음
-      }}
-      onPointerCancel={() => {
-        activeRef.current = null
-        hover(null)
-      }}
-    >
-      {Array.from({ length: FAN.count }, (_, i) => (
-        <button
-          key={i}
-          type="button"
-          className="card"
-          aria-label={`부적 ${i + 1}번`}
-          ref={(el) => {
-            cardsRef.current[i] = el
-          }}
-          onClick={() => draw(i)}
-        >
-          {/* 뒷면 문장(紋章). 겹친 장은 왼쪽 테두리 선만 드러나 켜켜이 쌓인 리듬을 만든다 */}
-          <i aria-hidden="true">運</i>
-        </button>
-      ))}
-    </div>
+    <>
+      <div
+        ref={rootRef}
+        className="fan"
+        role="group"
+        aria-label="부적 열아홉 장. 한 장을 고르세요"
+        onPointerDown={(e) => {
+          if (drawnRef.current) return
+          activeRef.current = nearest(e.clientX)
+          hover(activeRef.current)
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId)
+          } catch {
+            // 캡처가 안 되면 그냥 진행한다
+          }
+        }}
+        onPointerMove={(e) => {
+          if (drawnRef.current) return
+          if (e.pointerType === 'mouse' && e.buttons === 0) {
+            hover(nearest(e.clientX))
+            return
+          }
+          if (activeRef.current === null) return
+          activeRef.current = nearest(e.clientX)
+          hover(activeRef.current)
+        }}
+        onPointerLeave={() => {
+          if (activeRef.current === null) hover(null)
+        }}
+        onPointerUp={(e) => {
+          if (drawnRef.current) return
+          const idx = activeRef.current ?? nearest(e.clientX)
+          activeRef.current = null
+          draw(idx) // 손을 떼는 순간 확정. 확인 단계 없음
+        }}
+        onPointerCancel={() => {
+          activeRef.current = null
+          hover(null)
+        }}
+      >
+        {Array.from({ length: FAN.count }, (_, i) => (
+          <button
+            key={i}
+            type="button"
+            className="card"
+            aria-label={`부적 ${i + 1}번`}
+            ref={(el) => {
+              cardsRef.current[i] = el
+            }}
+            onClick={() => draw(i)}
+          >
+            {/* 뒷면 문장(紋章). 겹친 장은 왼쪽 테두리 선만 드러나 켜켜이 쌓인 리듬을 만든다 */}
+            <i aria-hidden="true">運</i>
+          </button>
+        ))}
+      </div>
+      {/* 부적이 곧 버튼인 화면이라 이 버튼은 목소리를 낮춘다. 부채 밖에 두어 쓸기 판정에 안 걸린다 */}
+      <button type="button" className="shuffle" onClick={shuffle}>
+        다시 섞기
+      </button>
+    </>
   )
 }

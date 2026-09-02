@@ -7,7 +7,7 @@ import { LUCKS } from './data/lucks'
 import { BRAND } from './lib/brand'
 import { saveCard } from './lib/cardImage'
 import { DRAW, FAN, REVEAL } from './lib/spec'
-import { formatDate, readDrawn, todaysDeck, writeDrawn } from './lib/seed'
+import { formatDate, readDrawn, readShuffle, todaysDeck, writeDrawn, writeShuffle } from './lib/seed'
 import { useReducedMotion } from './lib/useReducedMotion'
 import type { Luck } from './types'
 
@@ -25,8 +25,9 @@ export function App() {
 
   const now = useMemo(() => new Date(), [])
 
-  // 오늘 이 기기 앞에 놓이는 열아홉 장. 날짜와 기기로만 정해진다
-  const deck = useMemo(() => todaysDeck(LUCKS, now, FAN.count), [now])
+  // 오늘 이 기기 앞에 놓이는 열아홉 장. 날짜·기기·오늘 섞은 횟수로만 정해진다
+  const [shuffles, setShuffles] = useState(() => readShuffle(now))
+  const deck = useMemo(() => todaysDeck(LUCKS, now, FAN.count, shuffles), [now, shuffles])
 
   // 무엇을 집을지는 손이 정한다. 한 번 집으면 그날은 잠긴다
   const [luck, setLuck] = useState<Luck | null>(() => {
@@ -51,6 +52,14 @@ export function App() {
     },
     [deck, now],
   )
+
+  // 다시 섞으면 열아홉 장이 통째로 갈린다. 저장해 두어야 새로고침해도 섞은 덱 그대로다
+  const reshuffle = useCallback(() => {
+    const next = readShuffle(now) + 1
+    writeShuffle(now, next)
+    setShuffles(next)
+    if (reduced) say('덱을 다시 섞었어요!') // 애니메이션이 없는 손에게는 말로 알린다
+  }, [now, reduced, say])
 
   // 결과 · 부적이 반대쪽에서 돌아 나오고, 도장이 쿵 찍히고, 버튼이 따라온다
   useGSAP(
@@ -137,7 +146,7 @@ export function App() {
               있는 운
             </h1>
             <p className="intro-sub">끌리는 한 장을 골라보세요</p>
-            <Fan reduced={reduced} onDrawn={drawn} />
+            <Fan reduced={reduced} onDrawn={drawn} onShuffle={reshuffle} />
           </section>
         ) : (
           <section className="result">
