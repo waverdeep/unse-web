@@ -450,6 +450,24 @@ body {
   flex: 0 0 auto;
 }
 
+/* 저장 그림. 카드 폭에 맞추고, 길게 누르면 브라우저의 "이미지 저장"이 뜬다 */
+.save-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 2px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.32);
+  -webkit-touch-callout: default; /* iOS 길게 누르기 메뉴. 손패 쪽에서 꺼 둔 것을 여기서는 켠다 */
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+.save-hint {
+  color: var(--dim-2);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12px;
+  text-align: center;
+}
+
 button:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;

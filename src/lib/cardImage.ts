@@ -230,23 +230,71 @@ export function fileNameFor(luck: Luck, now: Date): string {
   return `운뽑_${luck.name}_${d}.png`
 }
 
-export type SaveResult = 'shared' | 'downloaded'
+// ── 저장 ──
+//
+// "저장"이 뜻하는 동작은 기기마다 다르다.
+//   iOS          — <a download> 는 사진첩에 안 들어간다. 공유 시트의 "이미지 저장"이 유일한 길이다.
+//   안드로이드·PC — <a download> 가 곧 저장이다. 공유 시트를 열면 "저장이 어딨어?"가 된다.
+//   인앱 브라우저 — 카톡·인스타 안의 웹뷰는 blob 다운로드를 조용히 삼킨다. 토스트만 뜨고 파일은 없다.
+//                  이미지를 화면에 띄워 길게 눌러 저장하게 한다.
+// 한 길이 막히면 다음 길로 넘어간다. 스크린샷 안내는 마지막이다.
+
+export type SaveResult =
+  | { how: 'shared' }
+  | { how: 'downloaded' }
+  | { how: 'preview'; url: string } // 화면에 띄워 길게 눌러 저장하게 한다. 닫을 때 URL.revokeObjectURL
+  | { how: 'cancelled' } // 공유 시트를 그냥 닫았다. 아무 말도 하지 않는다
+
+const UA = typeof navigator === 'undefined' ? '' : navigator.userAgent
+
+/** iPhone·iPad. 아이패드는 데스크톱 UA 를 쓰므로 터치로 가른다 */
+export const IS_IOS =
+  /iPhone|iPad|iPod/.test(UA) ||
+  (typeof navigator !== 'undefined' && navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+
+/** 카톡·인스타·페북·라인·네이버 안의 웹뷰. iOS 웹뷰는 UA 에 "Safari/" 가 없다 */
+export const IN_APP =
+  /KAKAOTALK|Instagram|FBAN|FBAV|FB_IAB|Line\/|NAVER\(inapp|DaumApps|; wv\)/i.test(UA) ||
+  (IS_IOS && !/Safari\//.test(UA))
+
+const cache = new Map<string, Promise<Blob>>()
 
 /**
- * 저장. iOS 는 <a download> 가 잘 듣지 않아 공유 시트로 넘긴다.
- * 거기서 "이미지 저장"을 고르면 사진첩에 들어간다.
+ * 결과 화면이 뜨면 미리 그려 둔다. 누를 때 그리면 폰트 내려받는 사이에
+ * 사파리가 손가락을 잊어 (transient activation 만료) 공유 시트가 안 열린다.
  */
-export async function saveCard(luck: Luck, now: Date): Promise<SaveResult> {
-  const blob = await renderCard(luck, now)
-  const name = fileNameFor(luck, now)
-  const file = new File([blob], name, { type: 'image/png' })
+export function prepareCard(luck: Luck, now: Date, theme: Theme = THEME): Promise<Blob> {
+  const key = `${theme.id}|${luck.id}|${formatDate(now)}`
+  let p = cache.get(key)
+  if (!p) {
+    p = renderCard(luck, now, theme)
+    p.catch(() => cache.delete(key)) // 실패한 그림은 다음 누름에 다시 그린다
+    cache.set(key, p)
+  }
+  return p
+}
 
-  if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({ files: [file] })
-    return 'shared'
+export async function saveCard(luck: Luck, now: Date): Promise<SaveResult> {
+  const blob = await prepareCard(luck, now)
+  const name = fileNameFor(luck, now)
+
+  if (IS_IOS && typeof File !== 'undefined') {
+    const file = new File([blob], name, { type: 'image/png' })
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] })
+        return { how: 'shared' }
+      } catch (e) {
+        if ((e as Error)?.name === 'AbortError') return { how: 'cancelled' }
+        // 손가락을 잊었거나 웹뷰가 막았다. 아래 길로 넘어간다
+      }
+    }
   }
 
   const url = URL.createObjectURL(blob)
+
+  if (IS_IOS || IN_APP) return { how: 'preview', url }
+
   const a = document.createElement('a')
   a.href = url
   a.download = name
@@ -254,5 +302,5 @@ export async function saveCard(luck: Luck, now: Date): Promise<SaveResult> {
   a.click()
   a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
-  return 'downloaded'
+  return { how: 'downloaded' }
 }

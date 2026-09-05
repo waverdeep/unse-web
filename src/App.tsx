@@ -5,7 +5,7 @@ import { Fan } from './components/Fan'
 import { Talisman } from './components/Talisman'
 import { LUCKS } from './data/lucks'
 import { track } from './lib/analytics'
-import { saveCard } from './lib/cardImage'
+import { IN_APP, prepareCard, saveCard } from './lib/cardImage'
 import { DRAW, FAN, REVEAL } from './lib/spec'
 import { formatDate, readDrawn, readShuffle, todaysDeck, writeDrawn, writeShuffle } from './lib/seed'
 import { useReducedMotion } from './lib/useReducedMotion'
@@ -19,6 +19,8 @@ export function App() {
   const reduced = useReducedMotion()
   const [toast, setToast] = useState('')
   const [saving, setSaving] = useState(false)
+  // 다운로드가 안 되는 기기(iOS·인앱 브라우저)에는 그림을 띄워 길게 눌러 저장하게 한다
+  const [preview, setPreview] = useState<string | null>(null)
   const stageRef = useRef<HTMLElement>(null)
   const cardRef = useRef<HTMLElement>(null)
   const toastTimer = useRef<number | undefined>(undefined)
@@ -148,15 +150,33 @@ export function App() {
     say('주소창의 링크를 복사해서 보내주세요.')
   }, [luck, say])
 
+  // 결과가 뜨면 저장 그림을 미리 그려 둔다. 등장 연출이 끝난 뒤에 — 그리는 동안 프레임이 떨어지면 안 된다.
+  // 누를 때 비로소 그리면 폰트 내려받는 사이에 사파리가 손가락을 잊어 공유 시트가 안 열린다
+  useEffect(() => {
+    if (!luck) return
+    const t = window.setTimeout(() => {
+      prepareCard(luck, now).catch(() => {}) // 여기서 실패해도 누를 때 다시 그린다
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [luck, now])
+
+  const closePreview = useCallback(() => {
+    setPreview((url) => {
+      if (url) URL.revokeObjectURL(url)
+      return null
+    })
+  }, [])
+
   const save = useCallback(async () => {
     if (!luck || saving) return
     setSaving(true)
     try {
-      const how = await saveCard(luck, now)
-      track('save_card', { method: how, luck_name: luck.name })
-      if (how === 'downloaded') say('카드가 저장됐어요!')
-    } catch (e) {
-      if ((e as Error)?.name === 'AbortError') return // 공유 시트를 그냥 닫은 경우
+      const r = await saveCard(luck, now)
+      if (r.how === 'cancelled') return // 공유 시트를 그냥 닫은 경우
+      track('save_card', { method: r.how, luck_name: luck.name })
+      if (r.how === 'downloaded') say('카드가 저장됐어요!')
+      if (r.how === 'preview') setPreview(r.url)
+    } catch {
       say('저장이 안 됐어요. 스크린샷으로 남겨주세요!')
     } finally {
       setSaving(false)
@@ -218,6 +238,20 @@ export function App() {
             <Talisman luck={friendLuck} now={now} />
             <button type="button" className="act primary friend-close" onClick={() => setPeek(false)}>
               {luck ? '닫기' : '나도 뽑으러 가기'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 파일로 떨어뜨릴 수 없는 기기. 그림을 보여주고 손으로 저장하게 한다 */}
+      {preview && luck && (
+        <div className="friend-view" role="dialog" aria-modal="true" onClick={closePreview}>
+          <div className="friend-box" onClick={(e) => e.stopPropagation()}>
+            <p className="friend-cap">이미지를 길게 눌러 저장하세요</p>
+            <img className="save-img" src={preview} alt={`오늘의 운 「${luck.name}」 카드`} />
+            {IN_APP && <p className="save-hint">저장이 안 되면 오른쪽 위 메뉴에서 다른 브라우저로 열어 보세요.</p>}
+            <button type="button" className="act primary friend-close" onClick={closePreview}>
+              닫기
             </button>
           </div>
         </div>
