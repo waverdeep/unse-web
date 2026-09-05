@@ -257,6 +257,30 @@ export const IN_APP =
   /KAKAOTALK|Instagram|FBAN|FBAV|FB_IAB|Line\/|NAVER\(inapp|DaumApps|; wv\)/i.test(UA) ||
   (IS_IOS && !/Safari\//.test(UA))
 
+export const IS_KAKAO = /KAKAOTALK/i.test(UA)
+export const IS_ANDROID = /Android/i.test(UA)
+
+/**
+ * 인앱 브라우저 밖으로 나간다. 카톡 안드로이드는 이미지 길게 누르기도 앱의 다운로드 매니저로
+ * 넘기는데 그게 blob 주소를 못 받아 실패한다 — 웹 쪽에서는 우회가 없다. 진짜 브라우저로 보낸다.
+ * 카톡은 자기 스킴이 있고, 그 밖의 안드로이드는 인텐트로 크롬을, iOS 는 사파리(17+)를 부른다.
+ */
+export function openOutside(url: string): void {
+  if (IS_KAKAO) {
+    location.href = `kakaotalk://web/openExternal?url=${encodeURIComponent(url)}`
+    return
+  }
+  if (IS_ANDROID) {
+    location.href = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
+    return
+  }
+  if (IS_IOS) {
+    location.href = `x-safari-${url}`
+    return
+  }
+  window.open(url, '_blank', 'noopener')
+}
+
 const cache = new Map<string, Promise<Blob>>()
 
 /**

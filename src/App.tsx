@@ -5,7 +5,7 @@ import { Fan } from './components/Fan'
 import { Talisman } from './components/Talisman'
 import { LUCKS } from './data/lucks'
 import { track } from './lib/analytics'
-import { IN_APP, prepareCard, saveCard } from './lib/cardImage'
+import { IN_APP, openOutside, prepareCard, saveCard } from './lib/cardImage'
 import { DRAW, FAN, REVEAL } from './lib/spec'
 import { formatDate, readDrawn, readShuffle, todaysDeck, writeDrawn, writeShuffle } from './lib/seed'
 import { useReducedMotion } from './lib/useReducedMotion'
@@ -31,8 +31,19 @@ export function App() {
   const [shuffles, setShuffles] = useState(() => readShuffle(now))
   const deck = useMemo(() => todaysDeck(LUCKS, now, FAN.count, shuffles), [now, shuffles])
 
+  // 인앱 브라우저에서 저장하러 밖으로 나올 때 오늘 뽑은 운을 들고 온다.
+  // 브라우저마다 저장소가 달라 그냥 나오면 다른 카드가 뜬다
+  const carried = useMemo(() => {
+    const my = new URLSearchParams(location.search).get('my')
+    return my ? (LUCKS.find((l) => l.id === Number(my)) ?? null) : null
+  }, [])
+
   // 무엇을 집을지는 손이 정한다. 한 번 집으면 그날은 잠긴다
   const [luck, setLuck] = useState<Luck | null>(() => {
+    if (carried) {
+      writeDrawn(now, carried.id)
+      return carried
+    }
     const id = readDrawn(now)
     return id === null ? null : (LUCKS.find((l) => l.id === id) ?? null)
   })
@@ -64,6 +75,13 @@ export function App() {
   useEffect(() => {
     if (friendLuck) track('friend_visit', { luck_id: friendLuck.id, luck_name: friendLuck.name })
   }, [friendLuck])
+
+  // 들고 온 운은 저장소에 적었으니 주소에서 뗀다. 새로고침마다 다시 덮어쓰면 안 된다
+  useEffect(() => {
+    if (!carried) return
+    history.replaceState(null, '', location.pathname)
+    say('브라우저로 나왔어요. 이제 카드 저장하기를 눌러 주세요.')
+  }, [carried, say])
 
   const drawn = useCallback(
     (index: number) => {
@@ -249,10 +267,28 @@ export function App() {
           <div className="friend-box" onClick={(e) => e.stopPropagation()}>
             <p className="friend-cap">이미지를 길게 눌러 저장하세요</p>
             <img className="save-img" src={preview} alt={`오늘의 운 「${luck.name}」 카드`} />
-            {IN_APP && <p className="save-hint">저장이 안 되면 오른쪽 위 메뉴에서 다른 브라우저로 열어 보세요.</p>}
-            <button type="button" className="act primary friend-close" onClick={closePreview}>
-              닫기
-            </button>
+            {IN_APP ? (
+              <>
+                <p className="save-hint">앱 안에서는 저장이 막힐 때가 있어요. 그럴 땐 브라우저로 열어 저장하세요.</p>
+                <button
+                  type="button"
+                  className="act primary friend-close"
+                  onClick={() => {
+                    track('save_card', { method: 'outside', luck_name: luck.name })
+                    openOutside(`${location.origin}${location.pathname}?my=${luck.id}`)
+                  }}
+                >
+                  브라우저로 열어 저장하기
+                </button>
+                <button type="button" className="act friend-close" onClick={closePreview}>
+                  닫기
+                </button>
+              </>
+            ) : (
+              <button type="button" className="act primary friend-close" onClick={closePreview}>
+                닫기
+              </button>
+            )}
           </div>
         </div>
       )}
